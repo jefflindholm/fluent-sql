@@ -804,6 +804,39 @@ describe('fluent sql tests', function() {
             });
             expect(cmd.fetchSql.trim()).to.equal('SELECT' + columns + '\nFROM\nbusiness as [business]');
         });
+        it('should take a decrypting function and call it for every column setting hasEncrypted to true if any are encrypted', function() {
+            var decrypt = function(column, qualified) {
+                if ( !(column instanceof sql.SqlColumn)) {
+                    throw { msg: 'not a sql.SqlColumn'};
+                }
+                if (column.columName === 'id') {
+                    return null;
+                }
+                if (qualified) {
+                    return sprintf('DECRYPT(%s)', column.qualifiedName());
+                } else {
+                    return sprintf('DECRYPT(%s)', column.ColumnName);
+                }
+            };
+            var query =new sql.SqlQuery()
+                .select(business.star())
+                .from(business);
+            var cmd = query.genSql(decrypt);
+            expect(cmd.hasEncrypted).to.equal(true);
+        });
+        it('should take a decrypting function and call it for every column setting hasEncrypted to false if none are encrypted', function() {
+            var decrypt = function(column, qualified) {
+                if ( !(column instanceof sql.SqlColumn)) {
+                    throw { msg: 'not a sql.SqlColumn'};
+                }
+                return null;
+            };
+            var query =new sql.SqlQuery()
+                .select(business.star())
+                .from(business);
+            var cmd = query.genSql(decrypt);
+            expect(cmd.hasEncrypted).to.equal(false);
+        });
         it('should take both a decrypting function and masking function and call them for every column', function() {
             var decrypt = function(column, qualified) {
                 if ( !(column instanceof sql.SqlColumn)) {

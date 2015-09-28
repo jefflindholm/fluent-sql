@@ -609,7 +609,7 @@ export class SqlQuery {
                 }
             } else {
                 var literal = decryptFunction ? decryptFunction(c, true) : null;
-                hasEncrypted = literal == null;
+                hasEncrypted = literal !== null;
                 literal = literal || c.qualifiedName(this);
                 if (maskFunction) {
                     literal = maskFunction(c, literal) || literal;

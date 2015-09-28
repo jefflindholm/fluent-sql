@@ -26,17 +26,14 @@ Get your SQL
 
 	var sql = query.getSql(decryptFunction, maskingFunction);
 
-Decrypt & Masking functions are just a function that takes 2 parameters, SqlColumn and boolean
-on weather or not to use a fully qualified column name (ie. table.col), you can do anything
-in these and return null or a SQL literal to insert for that column in the generated SQL
+Decrypt & Masking functions are just a function that takes 2 parameters, SqlColumn and boolean on weather or not to use a fully qualified column name (ie. table.col), you can do anything in these and return null or a SQL literal to insert for that column in the generated SQL. Both functions can be NULL
 
-sql returned is an object
-{
-	fetchSql - the actual sql statement to fetch the data
-	countSql - a count(\*) with the same where statement
-	hasEncrypted - boolean to say if the encrypted function ever returned something other than null
-	values - object of the values you used in the query
-}
+The sql returned is an object
+
+* fetchSql - the actual sql statement to fetch the data
+* countSql - a count(*) with the same where statement
+* hasEncrypted - boolean to say if the encrypted function ever returned something other than null
+* values - object of the values you used in the query
 
 Look through the tests for more examples, the tests should have every possible option exercised
 

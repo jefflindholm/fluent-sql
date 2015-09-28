@@ -7,6 +7,7 @@ This library basically takes your fluent SQL and generates SQL strings and repla
 * Quick summary
 I needed a javascript version of the same library I wrote for java (mainly because I just liked the flow)
 * Examples
+
 Create your table
 
 	var users = new SqlTable({

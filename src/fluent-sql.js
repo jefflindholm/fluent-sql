@@ -711,6 +711,16 @@ export class SqlQuery {
 }
 
 export class SqlTable {
+    /*
+     * @param {} - either another SqlTable, alias
+     *             or TableName, array of columns
+     * example:
+     *      var users = new SqlTable('users', [{ColumnName: 'id'}, {ColumnName: 'username'}, {ColumnName: 'password'}])
+     *      var users = new SqlTable({
+     *          TableName: 'users',
+     *          columns: [{ColumnName: 'id'}, {ColumnName: 'username'}, {ColumnName: 'password'}]
+     *      }, 'u');
+     */
     constructor () {
         var columns;
         var alias;

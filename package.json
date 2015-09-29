@@ -1,12 +1,13 @@
 {
     "name": "fluent-sql",
-    "version": "1.0.1",
+    "version": "0.0.0-semantically-released",
     "description": "Fluent SQL lib",
     "main": "dist/fluent-sql.js",
     "directories": {
         "test": "test"
     },
     "scripts": {
+        "commit": "git-cz",
         "prebuild": "rm -rf dist && mkdir dist",
         "build": "babel src/fluent-sql.js -o dist/fluent-sql.js",
         "postbuild": "cp src/string.js dist/string.js",
@@ -14,7 +15,8 @@
         "oldtest": "./node_modules/.bin/mocha --reporter spec",
         "test": "./node_modules/.bin/mocha --compilers js:babel/register --reporter spec -w",
         "single": "./node_modules/.bin/mocha --compilers js:babel/register --reporter spec",
-        "coverage": "./node_modules/.bin/mocha --compilers js:babel/register --require blanket -R html-cov > coverage.html"
+        "coverage": "./node_modules/.bin/mocha --compilers js:babel/register --require blanket -R html-cov > coverage.html",
+        "semantic-release": "semtantic-release pre && npm publish && semantic-release post"
     },
     "dependencies": {
         "sprintf-js": "^1.0.3",
@@ -26,10 +28,13 @@
         "babel-loader": "^5.3.2",
         "blanket": "^1.1.7",
         "chai": "^3.3.0",
+        "commitizen": "^1.0.5",
+        "cz-conventional-changelog": "^1.1.2",
         "es5-shim": "^4.1.13",
         "es6-shim": "^0.28.1",
         "ghooks": "^0.3.2",
         "istanbul": "^0.3.21",
+        "semantic-release": "^4.3.5",
         "webpack": "^1.12.2"
     },
     "repository": {
@@ -46,6 +51,9 @@
         "url": "https://github.com/jefflindholm/fluent-sql/issues"
     },
     "homepage": "https://github.com/jefflindholm/fluent-sql#readme",
+    "czConfig": {
+        "path": "node_modules/cz-conventional-changelog"
+    }
     "config": {
         "ghooks": {
             "pre-commit": "npm run single && rm -rf dist"

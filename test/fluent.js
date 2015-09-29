@@ -1,22 +1,22 @@
 //import expect from 'chai';
 //import sprintf from 'sprintf-js';
-//import {SqlQuery} from './fluent-sql.js';
-//import {SqlTable} from 'fluent-sql.js';
-//import {SqlColumn} from '.fluent-sql.js';
-//import {SqlWhere} from 'fluent-sql.js';
-//import {SqlOrder} from 'fluent-sql.js';
-//import {SqlJoin} from 'fluent-sql.js';
-//import {SqlBuilder} from 'fluent-sql.js';
+import {SqlQuery} from '../src/fluent-sql.js';
+import {SqlTable} from '../src/fluent-sql.js';
+import {SqlColumn} from '../src/fluent-sql.js';
+import {SqlWhere} from '../src/fluent-sql.js';
+import {SqlOrder} from '../src/fluent-sql.js';
+import {SqlJoin} from '../src/fluent-sql.js';
+import {SqlBuilder} from '../src/fluent-sql.js';
 
 const expect = require('chai').expect;
 const sprintf = require('sprintf-js').sprintf;
-const sql = require('../src/fluent-sql.js');
+//const sql = require('../src/fluent-sql.js');
 
 describe('fluent sql tests', function() {
 
     var businessColumns = [{ColumnName: 'id'}, {ColumnName: 'business_name'}, {ColumnName: 'tax_id'}];
-    var business = new sql.SqlTable({TableName: 'business', columns: businessColumns});
-    var business_dba = new sql.SqlTable('business_dba', [{ColumnName: 'id'}, {ColumnName: 'business_id'}, {ColumnName: 'dba'}]);
+    var business = new SqlTable({TableName: 'business', columns: businessColumns});
+    var business_dba = new SqlTable('business_dba', [{ColumnName: 'id'}, {ColumnName: 'business_id'}, {ColumnName: 'dba'}]);
 
     function getBusinessCols() {
         var columns = '';
@@ -33,7 +33,8 @@ describe('fluent sql tests', function() {
             expect('name'.sqlEscape()).to.equal('[name]');
         });
         it('should return escape based on the passed SqlQuery', function(){
-            var query =new sql.SqlQuery({sqlStartChar:'+', sqlEndChar:'*+'});
+            var query = new SqlQuery({sqlStartChar:'+', sqlEndChar:'*+'});
+            expect(query.sqlEscape('name')).to.equal('+name*+');
             expect('name'.sqlEscape(query)).to.equal('+name*+');
         });
     });
@@ -42,7 +43,7 @@ describe('fluent sql tests', function() {
 
         var col1 = business.id;
         var col2 = business.id.as('businessId');
-        var literal = new sql.SqlColumn(null, null, '(select top 1 id from business)').as('foo');
+        var literal = new SqlColumn(null, null, '(select top 1 id from business)').as('foo');
 
         describe('col1', function() {
             it('should have a qualified name of tableName1.columnName1', function() {
@@ -66,8 +67,8 @@ describe('fluent sql tests', function() {
                 expect(literal.Alias).to.equal('foo');
             })
         });
-        it('should throw execption if it is constructed from somrthing other than sql.SqlColumn, SqlTable, or {Literal:<val>}', function() {
-            expect(sql.SqlColumn.bind(null, {})).to.throw({ location: 'SqlColumn::constructor', message: 'must construct using a SqlTable'});
+        it('should throw execption if it is constructed from somrthing other than SqlColumn, SqlTable, or {Literal:<val>}', function() {
+            expect(SqlColumn.bind(null, {})).to.throw({ location: 'SqlColumn::constructor', message: 'must construct using a SqlTable'});
         });
         it('should generate SqlWhere clauses from operators, eq, ne, gt, gte, lt, lte, isNull, isNotNull, like, in', function() {
             var col = business.id;
@@ -75,15 +76,15 @@ describe('fluent sql tests', function() {
             // single args
             ['eq','ne','gt','gte','LT','lte','like'].forEach(function(op) {
                 where = col.op(op, 1);
-                expect(where instanceof sql.SqlWhere).to.equal(true);
+                expect(where instanceof SqlWhere).to.equal(true);
             });
             // no args
             ['isNull', 'isNotNull'].forEach(function(op) {
                 where = col.op(op);
-                expect(where instanceof sql.SqlWhere).to.equal(true);
+                expect(where instanceof SqlWhere).to.equal(true);
             });
             where = col.in(1,2,3,4,5,6);
-            expect(where instanceof sql.SqlWhere).to.equal(true);
+            expect(where instanceof SqlWhere).to.equal(true);
             expect(where.Value).to.eql([1,2,3,4,5,6]);
             where = col.in([1,2,3,4,5,6]);
             expect(where.Value).to.eql([1,2,3,4,5,6]);
@@ -92,16 +93,16 @@ describe('fluent sql tests', function() {
             var order;
             var column = business.id;
             order = column.asc();
-            expect(order instanceof sql.SqlOrder).to.equal(true);
+            expect(order instanceof SqlOrder).to.equal(true);
             expect(order.Direction).to.equal('ASC');
             order = column.desc();
-            expect(order instanceof sql.SqlOrder).to.equal(true);
+            expect(order instanceof SqlOrder).to.equal(true);
             expect(order.Direction).to.equal('DESC');
             order = column.dir('asc');
-            expect(order instanceof sql.SqlOrder).to.equal(true);
+            expect(order instanceof SqlOrder).to.equal(true);
             expect(order.Direction).to.equal('asc');
             order = column.direction('desc');
-            expect(order instanceof sql.SqlOrder).to.equal(true);
+            expect(order instanceof SqlOrder).to.equal(true);
             expect(order.Direction).to.equal('desc');
         });
         it('should have a value paramter if we call using()', function() {
@@ -122,9 +123,9 @@ describe('fluent sql tests', function() {
             it('should have two columns', function() {
                 expect(table1.Columns.length).to.equal(businessColumns.length);
             });
-            it('should have columns as an array of sql.SqlColumns', function() {
+            it('should have columns as an array of SqlColumns', function() {
                 for(var i = 0; i < table1.Columns.length; i++) {
-                    expect(table1.Columns[i] instanceof sql.SqlColumn).to.equal(true);
+                    expect(table1.Columns[i] instanceof SqlColumn).to.equal(true);
                 }
             })
         });
@@ -185,26 +186,26 @@ describe('fluent sql tests', function() {
             var id = Object.keys(cmd.values)[0];
             expect(cmd.fetchSql.trim()).to.equal('SELECT\n[b].id as [id]\nFROM\nbusiness as [b]\nWHERE [b].id = :' + id);
         });
-        it('should require a sql.SqlColumn when building a join using on', function() {
+        it('should require a SqlColumn when building a join using on', function() {
             expect(business.on.bind(business, {})).to.throw({ location: 'SqlTable::on', message: 'trying to build join on column not from this table'});
         });
 	});
 
     describe('SqlJoin tests', function() {
-        it('should throw error if it is not constructed from a sql.SqlColumn', function() {
-            expect(sql.SqlJoin.bind(null, {})).to.throw({ location: 'SqlJoin::constructor', message: 'trying to join on something not a sql.SqlColumn'});
+        it('should throw error if it is not constructed from a SqlColumn', function() {
+            expect(SqlJoin.bind(null, {})).to.throw({ location: 'SqlJoin::constructor', message: 'trying to join on something not a SqlColumn'});
 
         });
-        it('should throw error if it is not linked via using with a sql.SqlColumn', function() {
+        it('should throw error if it is not linked via using with a SqlColumn', function() {
             var join = business.on(business.id);
-            expect(join.using.bind(join, {})).to.throw({ location: 'SqlJoin::using', message: 'trying to join on something not a sql.SqlColumn'});
+            expect(join.using.bind(join, {})).to.throw({ location: 'SqlJoin::using', message: 'trying to join on something not a SqlColumn'});
 
         });
     });
 
     describe('SqlQuery tests', function() {
         it('should have 2 columns from business when selecting star()', function () {
-            var query =new sql.SqlQuery()
+            var query =new SqlQuery()
                 .select(business.star()).from(business);
 
             var cmd = query.genSql();
@@ -214,7 +215,7 @@ describe('fluent sql tests', function() {
             expect(cmd.fetchSql.trim()).to.equal('SELECT' + columns + '\nFROM\nbusiness as [business]');
         });
         it('should have 2 columns from business when selecting [business].id, business.businessName', function () {
-            var query =new sql.SqlQuery()
+            var query =new SqlQuery()
                 .select(business.id, business.businessName).from(business);
 
             var cmd = query.genSql();
@@ -223,7 +224,7 @@ describe('fluent sql tests', function() {
             expect(cmd.fetchSql.trim()).to.equal('SELECT\n[business].id as [id],\n[business].business_name as [businessName]\nFROM\nbusiness as [business]');
         });
         it('should have 2 columns from business when selecting [[business].id, business.businessName]', function () {
-            var query =new sql.SqlQuery()
+            var query =new SqlQuery()
                 .select([business.id, business.businessName]).from(business);
 
             var cmd = query.genSql();
@@ -232,7 +233,7 @@ describe('fluent sql tests', function() {
             expect(cmd.fetchSql.trim()).to.equal('SELECT\n[business].id as [id],\n[business].business_name as [businessName]\nFROM\nbusiness as [business]');
         });
         it('should have 1 column from business when selecting star() and removing id others', function () {
-            var query =new sql.SqlQuery()
+            var query =new SqlQuery()
                 .select(business.id,business.businessName).from(business)
                 .removeColumn(business.id)
                 .removeColumn(business.taxId);
@@ -243,7 +244,7 @@ describe('fluent sql tests', function() {
             expect(cmd.fetchSql.trim()).to.equal('SELECT\n[business].business_name as [businessName]\nFROM\nbusiness as [business]');
         });
         it('should be able to update an alias', function () {
-            var query =new sql.SqlQuery()
+            var query =new SqlQuery()
                 .select(business.star()).from(business)
                 .updateAlias(business.id, 'bId');
 
@@ -255,7 +256,7 @@ describe('fluent sql tests', function() {
             expect(business.id.Alias).to.equal('id');
         });
         it('should join business_dba on business_id to business on id', function () {
-            var query =new sql.SqlQuery()
+            var query =new SqlQuery()
                 .select(business.id, business.businessName).from(business);
             query.join(business_dba.on(business_dba.businessId).using(business.id));
 
@@ -265,7 +266,7 @@ describe('fluent sql tests', function() {
             expect(cmd.fetchSql.trim()).to.equal('SELECT\n[business].id as [id],\n[business].business_name as [businessName]\nFROM\nbusiness as [business]\nJOIN business_dba as [business_dba] on [business_dba].business_id = [business].id');
         });
         it('should left join business_dba on business_id to business on id', function () {
-            var query =new sql.SqlQuery()
+            var query =new SqlQuery()
                 .select(business.id, business.businessName).from(business);
             query.left(business_dba.on(business_dba.businessId).using(business.id));
 
@@ -275,7 +276,7 @@ describe('fluent sql tests', function() {
             expect(cmd.fetchSql.trim()).to.equal('SELECT\n[business].id as [id],\n[business].business_name as [businessName]\nFROM\nbusiness as [business]\nLEFT JOIN business_dba as [business_dba] on [business_dba].business_id = [business].id');
         });
         it('should right join business_dba on business_id to business on id', function () {
-            var query =new sql.SqlQuery()
+            var query =new SqlQuery()
                 .select(business.id, business.businessName).from(business);
             query.right(business_dba.on(business_dba.businessId).using(business.id));
 
@@ -285,7 +286,7 @@ describe('fluent sql tests', function() {
             expect(cmd.fetchSql.trim()).to.equal('SELECT\n[business].id as [id],\n[business].business_name as [businessName]\nFROM\nbusiness as [business]\nRIGHT JOIN business_dba as [business_dba] on [business_dba].business_id = [business].id');
         });
         it('should handle ordering by columns', function () {
-            var query =new sql.SqlQuery()
+            var query =new SqlQuery()
                 .select(business.id, business.businessName).from(business)
                 .orderBy(business.businessName)
                 .orderBy(business.id.desc());
@@ -296,8 +297,8 @@ describe('fluent sql tests', function() {
         });
         it('should handle litterals in the select', function () {
             var litString = 'select name from business_name where bid = [business].id and foo = :test';
-            var literal = new sql.SqlColumn({Literal: litString, Alias: 'name'}).using({test:123});
-            var query =new sql.SqlQuery()
+            var literal = new SqlColumn({Literal: litString, Alias: 'name'}).using({test:123});
+            var query =new SqlQuery()
                 .select(literal).from(business);
 
             var cmd = query.genSql();
@@ -309,7 +310,7 @@ describe('fluent sql tests', function() {
             expect(cmd.fetchSql.trim()).to.equal(sprintf('SELECT\n(%s) as [name]\nFROM\nbusiness as [business]', litString));
         });
         it('should handle litterals in the select with value', function () {
-            var query =new sql.SqlQuery()
+            var query =new SqlQuery()
                 .select({Literal: 'select name from business_name where business_name.bid = [business].id', Alias: 'name'}).from(business);
 
             var cmd = query.genSql();
@@ -318,7 +319,7 @@ describe('fluent sql tests', function() {
             expect(cmd.fetchSql.trim()).to.equal('SELECT\n(select name from business_name where business_name.bid = [business].id) as [name]\nFROM\nbusiness as [business]');
         });
         it('should select distinct', function () {
-            var query =new sql.SqlQuery()
+            var query =new SqlQuery()
                 .select(business.businessName).from(business).distinct();
 
             var cmd = query.genSql();
@@ -330,7 +331,7 @@ describe('fluent sql tests', function() {
 
     describe('SqlQuery Where clause tests', function() {
         it('should handle a simple where clause', function() {
-            var query =new sql.SqlQuery()
+            var query =new SqlQuery()
                 .select(business.id, business.businessName).from(business)
                 .where(business.id.eq(10000));
             var cmd = query.genSql();
@@ -341,7 +342,7 @@ describe('fluent sql tests', function() {
             expect(cmd.fetchSql.trim()).to.equal('SELECT\n[business].id as [id],\n[business].business_name as [businessName]\nFROM\nbusiness as [business]\nWHERE [business].id = :' + id);
         });
         it('should handle a where clause with ands', function() {
-            var query =new sql.SqlQuery()
+            var query =new SqlQuery()
                 .select(business.id, business.businessName).from(business)
                 .where(business.id.eq(10000))
                 .where(business.businessName.eq('fred'));
@@ -363,7 +364,7 @@ describe('fluent sql tests', function() {
                 + '\nAND [business].business_name = :'+ name);
         });
         it('should handle a where clause using in', function() {
-            var query =new sql.SqlQuery()
+            var query =new SqlQuery()
                 .select(business.id, business.businessName).from(business)
                 .where(business.id.in(10000,10001,10002));
 
@@ -382,7 +383,7 @@ describe('fluent sql tests', function() {
                 'WHERE [business].id in (:' + id + ')');
         });
         it('should handle a where clause using between', function() {
-            var query =new sql.SqlQuery()
+            var query =new SqlQuery()
                 .select(business.id, business.businessName).from(business)
                 .where(business.id.between(10000,10002));
 
@@ -405,7 +406,7 @@ describe('fluent sql tests', function() {
             );
         });
         it('should handle a where clause using is null', function() {
-            var query =new sql.SqlQuery()
+            var query =new SqlQuery()
                 .select(business.id,business.businessName).from(business)
                 .where(business.id.isNull())
             ;
@@ -424,7 +425,7 @@ describe('fluent sql tests', function() {
             );
         });
         it('should handle a where clause making it a NOT for the column test', function() {
-            var query =new sql.SqlQuery()
+            var query =new SqlQuery()
                     .select(business.id,business.businessName).from(business)
                     .where(business.id.not().isNull())
                 ;
@@ -443,7 +444,7 @@ describe('fluent sql tests', function() {
             );
         });
         it('should handle a where clause using is not null', function() {
-            var query =new sql.SqlQuery()
+            var query =new SqlQuery()
                     .select(business.id,business.businessName).from(business)
                     .where(business.id.isNotNull())
                 ;
@@ -462,7 +463,7 @@ describe('fluent sql tests', function() {
             );
         });
         it('should handle a where clause using a like and add in the %', function(){
-            var query =new sql.SqlQuery()
+            var query =new SqlQuery()
                 .select(business.id,business.businessName).from(business)
                 .where(business.businessName.like('fred'));
             var cmd = query.genSql();
@@ -473,7 +474,7 @@ describe('fluent sql tests', function() {
             expect(cmd.fetchSql.trim()).to.equal('SELECT\n[business].id as [id],\n[business].business_name as [businessName]\nFROM\nbusiness as [business]\nWHERE [business].business_name like :' + name);
         });
         it('should handle a where clause or\'ed with another where clause', function(){
-            var query =new sql.SqlQuery()
+            var query =new SqlQuery()
                 .select(business.id,business.businessName).from(business)
                 .where(business.businessName.like('fred')
                 .or(business.id.eq(1)))
@@ -498,7 +499,7 @@ describe('fluent sql tests', function() {
             );
         });
         it('should handle a where clause linking table columns', function(){
-            var query =new sql.SqlQuery()
+            var query =new SqlQuery()
                 .select(business.id,business.businessName).from(business).from(business_dba)
                 .where(business.id.eq(business_dba.businessId));
             var cmd = query.genSql();
@@ -508,9 +509,9 @@ describe('fluent sql tests', function() {
         });
         // LITERALS with values
         it('should handle a where clause with a literal with values', function(){
-            var lit = new sql.SqlColumn({Literal:'SELECT business_id FROM business_dba WHERE dba_name like :foo'}).using({foo:'%foo%'});
+            var lit = new SqlColumn({Literal:'SELECT business_id FROM business_dba WHERE dba_name like :foo'}).using({foo:'%foo%'});
 
-            var query =new sql.SqlQuery()
+            var query =new SqlQuery()
                 .select(business.id,business.businessName).from(business)
                 .where(business.id.eq(lit));
             var cmd = query.genSql();
@@ -538,7 +539,7 @@ describe('fluent sql tests', function() {
 
     describe('SqlQuery paging tests', function() {
         it('Should default to page size of 50, should default to ordering by the first column in the select list', function() {
-            var query =new sql.SqlQuery()
+            var query =new SqlQuery()
                 .select(business.id,business.businessName)
                 .from(business)
                 .page(1);
@@ -550,7 +551,7 @@ describe('fluent sql tests', function() {
             expect(cmd.fetchSql).to.equal(sprintf('SELECT * FROM (\n%s\n) as detail_query WHERE Paging_RowNumber BETWEEN 0 AND 50', baseSql));
         });
         it('Should default to page of 1', function() {
-            var query =new sql.SqlQuery()
+            var query =new SqlQuery()
                 .select(business.id,business.businessName)
                 .from(business)
                 .pageSize(10);
@@ -562,7 +563,7 @@ describe('fluent sql tests', function() {
             expect(cmd.fetchSql).to.equal(sprintf('SELECT * FROM (\n%s\n) as detail_query WHERE Paging_RowNumber BETWEEN 0 AND 10', baseSql));
         });
         it('Should use TOP if top is added', function() {
-            var query =new sql.SqlQuery()
+            var query =new SqlQuery()
                 .select(business.id,business.businessName)
                 .from(business)
                 .top(10);
@@ -574,7 +575,7 @@ describe('fluent sql tests', function() {
         });
         it('Should order by in the query', function(){
             var name = business.businessName.as('name');
-            var query =new sql.SqlQuery()
+            var query =new SqlQuery()
                 .select(business.id, name)
                 .from(business)
                 .orderBy(name)
@@ -590,7 +591,7 @@ describe('fluent sql tests', function() {
 
     describe('SqlQuery order tests', function() {
         it('should use the order when creating a simple sql statement',function() {
-            var query =new sql.SqlQuery()
+            var query =new SqlQuery()
                 .from(business)
                 .select(business.id,business.businessName)
                 .orderBy(business.businessName);
@@ -600,7 +601,7 @@ describe('fluent sql tests', function() {
             expect(cmd.fetchSql.trim()).to.equal('SELECT\n[business].id as [id],\n[business].business_name as [businessName]\nFROM\nbusiness as [business]\nORDER BY [business].business_name ASC');
         });
         it('should allow changing sort direction',function() {
-            var query =new sql.SqlQuery()
+            var query =new SqlQuery()
                 .from(business)
                 .select(business.id,business.businessName)
                 .orderBy(business.businessName.desc());
@@ -610,7 +611,7 @@ describe('fluent sql tests', function() {
             expect(cmd.fetchSql.trim()).to.equal('SELECT\n[business].id as [id],\n[business].business_name as [businessName]\nFROM\nbusiness as [business]\nORDER BY [business].business_name DESC');
         });
         it('should allow a list of columns',function() {
-            var query =new sql.SqlQuery()
+            var query =new SqlQuery()
                 .from(business)
                 .select(business.id,business.businessName)
                 .orderBy(business.businessName.desc(), business.id);
@@ -620,7 +621,7 @@ describe('fluent sql tests', function() {
             expect(cmd.fetchSql.trim()).to.equal('SELECT\n[business].id as [id],\n[business].business_name as [businessName]\nFROM\nbusiness as [business]\nORDER BY [business].business_name DESC,[business].id ASC');
         });
         it('should allow an array of columns',function() {
-            var query =new sql.SqlQuery()
+            var query =new SqlQuery()
                 .from(business)
                 .select(business.id,business.businessName)
                 .orderBy([business.businessName.desc(), business.id]);
@@ -630,7 +631,7 @@ describe('fluent sql tests', function() {
             expect(cmd.fetchSql.trim()).to.equal('SELECT\n[business].id as [id],\n[business].business_name as [businessName]\nFROM\nbusiness as [business]\nORDER BY [business].business_name DESC,[business].id ASC');
         });
         it('should allow an multiple order bys of columns',function() {
-            var query =new sql.SqlQuery()
+            var query =new SqlQuery()
                 .from(business)
                 .select(business.id,business.businessName)
                 .orderBy(business.businessName.desc())
@@ -644,23 +645,23 @@ describe('fluent sql tests', function() {
 
     describe('SqlQuery error tests', function() {
         it('should throw if from is not a SqlTable', function() {
-            var query =new sql.SqlQuery();
+            var query =new SqlQuery();
             expect(query.from.bind(query, {})).to.throw({ location: 'SqlQuery::from', message: 'from clause must be a SqlTable'} );
         });
         it('should throw if join is not a SqlJoin', function() {
-            var query =new sql.SqlQuery();
+            var query =new SqlQuery();
             expect(query.join.bind(query, {})).to.throw({ location: 'SqlQuery::join', message: 'clause is not a SqlJoin'} );
         });
-        it('should throw exception if it is orderby with something other than SqlOrder or sql.SqlColumn', function() {
-            var query =new sql.SqlQuery();
-            expect(query.orderBy.bind(query, {})).to.throw( { location: "SqlOrder::constructor", message: "did not pass a sql.SqlColumn object"});
+        it('should throw exception if it is orderby with something other than SqlOrder or SqlColumn', function() {
+            var query =new SqlQuery();
+            expect(query.orderBy.bind(query, {})).to.throw( { location: "SqlOrder::constructor", message: "did not pass a SqlColumn object"});
         });
     });
 
     describe('SqlBuilder tests', function() {
         it('should build an insert statement given a table and an object', function(){
             var data = { id: 1234, businessName: 'some guy\'s cars'};
-            var cmd = sql.SqlBuilder.insert(business, data, 4000);
+            var cmd = SqlBuilder.insert(business, data, 4000);
 
             expect(Object.keys(cmd.values).length).to.equal(2);
             var name = Object.keys(cmd.values)[0];
@@ -671,7 +672,7 @@ describe('fluent sql tests', function() {
         });
         it('should build an insert statement given a table and an object ignoring columns not in the table', function(){
             var data = { id: 1234, businessName: 'some guy\'s cars', frank: 123};
-            var cmd = sql.SqlBuilder.insert(business, data, 4000);
+            var cmd = SqlBuilder.insert(business, data, 4000);
 
             expect(Object.keys(cmd.values).length).to.equal(2);
             var name = Object.keys(cmd.values)[0];
@@ -682,7 +683,7 @@ describe('fluent sql tests', function() {
         });
         it('should build an update statement given a table and an object', function(){
             var data = { id: 1234, businessName: 'some guy\'s cars'};
-            var cmd = sql.SqlBuilder.update(business, data);
+            var cmd = SqlBuilder.update(business, data);
 
             expect(Object.keys(cmd.values).length).to.equal(2);
             var id = Object.keys(cmd.values)[0];
@@ -693,7 +694,7 @@ describe('fluent sql tests', function() {
         });
         it('should build an update statement given a table and an object, ignoring extra columns', function(){
             var data = { id: 1234, businessName: 'some guy\'s cars', frank: 123};
-            var cmd = sql.SqlBuilder.update(business, data);
+            var cmd = SqlBuilder.update(business, data);
 
             expect(Object.keys(cmd.values).length).to.equal(2);
             var id = Object.keys(cmd.values)[0];
@@ -703,14 +704,14 @@ describe('fluent sql tests', function() {
             expect(cmd.sql).to.equal(sprintf('UPDATE business SET business_name = :%s WHERE id = :%s', name, id));
         });
         it('should throw an exception if the first argument is not a SqlTable to insert and update', function() {
-            expect(sql.SqlBuilder.update.bind(sql.SqlBuilder, {})).to.throw( { location: 'SqlBuilder::update', message: 'sqlTable is not an instance of SqlTable'} );
-            expect(sql.SqlBuilder.insert.bind(sql.SqlBuilder, {})).to.throw( { location: 'SqlBuilder::insert', message: 'sqlTable is not an instance of SqlTable'} );
+            expect(SqlBuilder.update.bind(SqlBuilder, {})).to.throw( { location: 'SqlBuilder::update', message: 'sqlTable is not an instance of SqlTable'} );
+            expect(SqlBuilder.insert.bind(SqlBuilder, {})).to.throw( { location: 'SqlBuilder::insert', message: 'sqlTable is not an instance of SqlTable'} );
 
         });
         it('should encrypt columns as needed for update', function(){
             var decrypt = function(column, varName) {
-                if ( !(column instanceof sql.SqlColumn)) {
-                    throw { msg: 'not a sql.SqlColumn'};
+                if ( !(column instanceof SqlColumn)) {
+                    throw { msg: 'not a SqlColumn'};
                 }
                 if ( column.ColumnName !== 'tax_id' ) {
                     return null;
@@ -718,7 +719,7 @@ describe('fluent sql tests', function() {
                 return sprintf('ENCRYPT(:%s)', varName);
             };
             var data = { id: 1234, businessName: 'some guy\'s cars', taxId: 12345};
-            var cmd = sql.SqlBuilder.update(business, data, decrypt);
+            var cmd = SqlBuilder.update(business, data, decrypt);
             expect(Object.keys(cmd.values).length).to.equal(3);
             var id = Object.keys(cmd.values)[0];
             var name = Object.keys(cmd.values)[1];
@@ -732,8 +733,8 @@ describe('fluent sql tests', function() {
         });
         it('should encrypt columns as needed for insert', function(){
             var decrypt = function(column, varName) {
-                if ( !(column instanceof sql.SqlColumn)) {
-                    throw { msg: 'not a sql.SqlColumn'};
+                if ( !(column instanceof SqlColumn)) {
+                    throw { msg: 'not a SqlColumn'};
                 }
                 if ( column.ColumnName !== 'tax_id' ) {
                     return null;
@@ -741,7 +742,7 @@ describe('fluent sql tests', function() {
                 return sprintf('ENCRYPT(:%s)', varName);
             };
             var data = { id: 1234, businessName: 'some guy\'s cars', taxId: 12345};
-            var cmd = sql.SqlBuilder.insert(business, data, 4000, decrypt);
+            var cmd = SqlBuilder.insert(business, data, 4000, decrypt);
             expect(Object.keys(cmd.values).length).to.equal(3);
             var id = Object.keys(cmd.values)[2];
             var name = Object.keys(cmd.values)[0];
@@ -758,12 +759,12 @@ describe('fluent sql tests', function() {
     describe('SqlQuery extras', function() {
         it('should take a masking function and call it for every column', function() {
             var masking = function(column, literal) {
-                if ( !(column instanceof sql.SqlColumn)) {
-                    throw { msg: 'not a sql.SqlColumn'};
+                if ( !(column instanceof SqlColumn)) {
+                    throw { msg: 'not a SqlColumn'};
                 }
                 return sprintf('RIGHT(%s, 4)', literal);
             };
-            var query =new sql.SqlQuery()
+            var query =new SqlQuery()
                 .select(business.star())
                 .from(business);
             var cmd = query.genSql(null, masking);
@@ -780,8 +781,8 @@ describe('fluent sql tests', function() {
         });
         it('should take a decrypting function and call it for every column', function() {
             var decrypt = function(column, qualified) {
-                if ( !(column instanceof sql.SqlColumn)) {
-                    throw { msg: 'not a sql.SqlColumn'};
+                if ( !(column instanceof SqlColumn)) {
+                    throw { msg: 'not a SqlColumn'};
                 }
                 if (qualified) {
                     return sprintf('DECRYPT(%s)', column.qualifiedName());
@@ -789,7 +790,7 @@ describe('fluent sql tests', function() {
                     return sprintf('DECRYPT(%s)', column.ColumnName);
                 }
             };
-            var query =new sql.SqlQuery()
+            var query =new SqlQuery()
                 .select(business.star())
                 .from(business);
             var cmd = query.genSql(decrypt);
@@ -806,8 +807,8 @@ describe('fluent sql tests', function() {
         });
         it('should take a decrypting function and call it for every column setting hasEncrypted to true if any are encrypted', function() {
             var decrypt = function(column, qualified) {
-                if ( !(column instanceof sql.SqlColumn)) {
-                    throw { msg: 'not a sql.SqlColumn'};
+                if ( !(column instanceof SqlColumn)) {
+                    throw { msg: 'not a SqlColumn'};
                 }
                 if (column.columName === 'id') {
                     return null;
@@ -818,7 +819,7 @@ describe('fluent sql tests', function() {
                     return sprintf('DECRYPT(%s)', column.ColumnName);
                 }
             };
-            var query =new sql.SqlQuery()
+            var query =new SqlQuery()
                 .select(business.star())
                 .from(business);
             var cmd = query.genSql(decrypt);
@@ -826,12 +827,12 @@ describe('fluent sql tests', function() {
         });
         it('should take a decrypting function and call it for every column setting hasEncrypted to false if none are encrypted', function() {
             var decrypt = function(column, qualified) {
-                if ( !(column instanceof sql.SqlColumn)) {
-                    throw { msg: 'not a sql.SqlColumn'};
+                if ( !(column instanceof SqlColumn)) {
+                    throw { msg: 'not a SqlColumn'};
                 }
                 return null;
             };
-            var query =new sql.SqlQuery()
+            var query =new SqlQuery()
                 .select(business.star())
                 .from(business);
             var cmd = query.genSql(decrypt);
@@ -839,8 +840,8 @@ describe('fluent sql tests', function() {
         });
         it('should take both a decrypting function and masking function and call them for every column', function() {
             var decrypt = function(column, qualified) {
-                if ( !(column instanceof sql.SqlColumn)) {
-                    throw { msg: 'not a sql.SqlColumn'};
+                if ( !(column instanceof SqlColumn)) {
+                    throw { msg: 'not a SqlColumn'};
                 }
                 if ( column.ColumnName !== 'tax_id' ) {
                     return null;
@@ -852,15 +853,15 @@ describe('fluent sql tests', function() {
                 }
             };
             var masking = function(column, literal) {
-                if ( !(column instanceof sql.SqlColumn)) {
-                    throw { msg: 'not a sql.SqlColumn'};
+                if ( !(column instanceof SqlColumn)) {
+                    throw { msg: 'not a SqlColumn'};
                 }
                 if ( column.ColumnName === 'id' ) {
                     return null;
                 }
                 return sprintf('RIGHT(%s, 4)', literal);
             };
-            var query =new sql.SqlQuery()
+            var query =new SqlQuery()
                 .select(business.star())
                 .from(business);
             var cmd = query.genSql(decrypt, masking);
@@ -885,7 +886,7 @@ describe('fluent sql tests', function() {
         });
         describe('SqlQuery applyOrder', function() {
             it('should allow you to apply an order string to the query', function() {
-                var query =new sql.SqlQuery()
+                var query =new SqlQuery()
                     .select(business.star()).from(business);
 
                 var order = 'id, name DESC';
@@ -897,7 +898,7 @@ describe('fluent sql tests', function() {
                 expect(cmd.fetchSql.trim()).to.equal('SELECT' + columns + '\nFROM\nbusiness as [business]\nORDER BY [business].id ASC,[business].business_name DESC');
             });
             it('should allow you to apply an order string to the query with multiple tables', function() {
-                var query =new sql.SqlQuery()
+                var query =new SqlQuery()
                     .select(business.star()).from(business)
                     .join(business_dba.on(business_dba.businessId).using(business.id));
 
@@ -910,7 +911,7 @@ describe('fluent sql tests', function() {
                 expect(cmd.fetchSql.trim()).to.equal('SELECT' + columns + '\nFROM\nbusiness as [business]\nJOIN business_dba as [business_dba] on [business_dba].business_id = [business].id\nORDER BY [business].id ASC,[business].business_name DESC,[business_dba].id ASC');
             });
             it('should throw an exception if the first argument is not a SqlTable to insert and update', function() {
-                var query =new sql.SqlQuery()
+                var query =new SqlQuery()
                     .select(business.star()).from(business)
                     .join(business_dba.on(business_dba.businessId).using(business.id));
 
@@ -937,7 +938,7 @@ describe('fluent sql tests', function() {
                 });
                 return arr;
             }
-            var table =new sql.SqlTable({TableName: 'document_templates', Columns: legalColumns()});
+            var table =new SqlTable({TableName: 'document_templates', Columns: legalColumns()});
             expect(table.Columns.length).to.equal(3);
             expect(table.businessType.ColumnName).to.equal('business_type');
             expect(table.businessTypeFormatted.Literal).to.equal('REPLACE(COALESCE(business_type, \'Unknown Business\'), \'_\', \' \')');

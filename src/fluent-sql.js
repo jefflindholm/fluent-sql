@@ -9,7 +9,8 @@ if (!String.prototype.sqlEscape) {
     (function () {
         'use strict';
         var sqlEscape = function (sqlQuery, level) {
-            if (!(sqlQuery instanceof SqlQuery)) {
+
+            if (!sqlQuery || !sqlQuery.sqlEscape || typeof sqlQuery.sqlEscape !== "function") {
                 sqlQuery = new SqlQuery();
             }
             return sqlQuery.sqlEscape(this, level);

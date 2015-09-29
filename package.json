@@ -1,71 +1,72 @@
 {
-    "name": "fluent-sql",
-    "version": "0.0.0-semantically-released",
-    "description": "Fluent SQL lib",
-    "main": "dist/fluent-sql.js",
-    "directories": {
-        "test": "test"
-    },
-    "scripts": {
-        "commit": "git-cz",
-        "prebuild": "rm -rf dist && mkdir dist",
-        "build": "babel src/fluent-sql.js -o dist/fluent-sql.js",
-        "postbuild": "cp src/string.js dist/string.js",
-        "prepublish": "npm run build",
-        "oldtest": "./node_modules/.bin/mocha --reporter spec",
-        "test": "./node_modules/.bin/mocha --compilers js:babel/register --reporter spec -w",
-        "test:single": "./node_modules/.bin/mocha --compilers js:babel/register --reporter spec",
-        "coverage": "./node_modules/.bin/mocha --compilers js:babel/register --require blanket -R html-cov > coverage.html",
-        "semantic-release": "semtantic-release pre && npm publish && semantic-release post"
-    },
-    "dependencies": {
-        "sprintf-js": "^1.0.3",
-        "sliced": "^0.0.5"
-    },
-    "devDependencies": {
-        "babel": "^5.8.23",
-        "babel-core": "^5.8.25",
-        "babel-loader": "^5.3.2",
-        "blanket": "^1.1.7",
-        "chai": "^3.3.0",
-        "commitizen": "^1.0.5",
-        "cz-conventional-changelog": "^1.1.2",
-        "es5-shim": "^4.1.13",
-        "es6-shim": "^0.28.1",
-        "ghooks": "^0.3.2",
-        "istanbul": "^0.3.21",
-        "semantic-release": "^4.3.5",
-        "webpack": "^1.12.2"
-    },
-    "repository": {
-        "type": "git",
-        "url": "git+https://github.com/jefflindholm/fluent-sql.git"
-    },
-    "keywords": [
+  "name": "fluent-sql",
+  "version": "0.0.0-semantically-released",
+  "description": "Fluent SQL lib",
+  "main": "dist/fluent-sql.js",
+  "directories": {
+    "test": "test"
+  },
+  "scripts": {
+    "commit": "git-cz",
+    "prebuild": "rm -rf dist && mkdir dist",
+    "build": "babel src/fluent-sql.js -o dist/fluent-sql.js",
+    "postbuild": "cp src/string.js dist/string.js",
+    "prepublish": "npm run build",
+    "oldtest": "./node_modules/.bin/mocha --reporter spec",
+    "test": "./node_modules/.bin/mocha --compilers js:babel/register --reporter spec -w",
+    "test:single": "./node_modules/.bin/mocha --compilers js:babel/register --reporter spec",
+    "coverage": "./node_modules/.bin/mocha --compilers js:babel/register --require blanket -R html-cov > coverage.html",
+    "semantic-release": "semtantic-release pre && npm publish && semantic-release post"
+  },
+  "dependencies": {
+    "sprintf-js": "^1.0.3",
+    "sliced": "^0.0.5"
+  },
+  "devDependencies": {
+    "babel": "^5.8.23",
+    "babel-core": "^5.8.25",
+    "babel-loader": "^5.3.2",
+    "blanket": "^1.1.7",
+    "chai": "^3.3.0",
+    "commitizen": "^1.0.5",
+    "cz-conventional-changelog": "^1.1.2",
+    "es5-shim": "^4.1.13",
+    "es6-shim": "^0.28.1",
+    "ghooks": "^0.3.2",
+    "istanbul": "^0.3.21",
+    "mocha": "^2.3.3",
+    "semantic-release": "^4.3.5",
+    "webpack": "^1.12.2"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jefflindholm/fluent-sql.git"
+  },
+  "keywords": [
     "SQL",
     "Fluent"
   ],
-    "author": "Jeff Lindholm <jeff@lindholm.org>",
-    "license": "MIT",
-    "bugs": {
-        "url": "https://github.com/jefflindholm/fluent-sql/issues"
+  "author": "Jeff Lindholm <jeff@lindholm.org>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/jefflindholm/fluent-sql/issues"
+  },
+  "homepage": "https://github.com/jefflindholm/fluent-sql#readme",
+  "czConfig": {
+    "path": "node_modules/cz-conventional-changelog"
+  },
+  "config": {
+    "ghooks": {
+      "pre-commit": "npm run test:single && rm -rf dist"
     },
-    "homepage": "https://github.com/jefflindholm/fluent-sql#readme",
-    "czConfig": {
-        "path": "node_modules/cz-conventional-changelog"
-    },
-    "config": {
-        "ghooks": {
-            "pre-commit": "npm run test:single && rm -rf dist"
-        },
-        "blanket": {
-            "pattern": [
+    "blanket": {
+      "pattern": [
         "/src/"
       ],
-            "data-cover-never": [
+      "data-cover-never": [
         "node_modules",
         "tests"
       ]
-        }
     }
+  }
 }

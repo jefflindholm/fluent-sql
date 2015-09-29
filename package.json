@@ -53,7 +53,7 @@
     "homepage": "https://github.com/jefflindholm/fluent-sql#readme",
     "czConfig": {
         "path": "node_modules/cz-conventional-changelog"
-    }
+    },
     "config": {
         "ghooks": {
             "pre-commit": "npm run single && rm -rf dist"

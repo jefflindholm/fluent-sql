@@ -12,10 +12,10 @@
         "build": "babel src/fluent-sql.js -o dist/fluent-sql.js",
         "postbuild": "cp src/string.js dist/string.js",
         "prepublish": "npm run build",
-        "oldtest": "./node_modules/.bin/mocha --reporter spec",
         "test": "./node_modules/.bin/mocha --compilers js:babel/register --reporter spec -w",
+        "coverage": "./node_modules/.bin/istanbul cover ./node_modules/mocha/bin/_mocha -- --compilers js:babel/register -R spec",
         "test:single": "./node_modules/.bin/mocha --compilers js:babel/register --reporter spec",
-        "coverage": "./node_modules/.bin/mocha --compilers js:babel/register --require blanket -R html-cov > coverage.html",
+        "debug": "start node-inspector && mocha --debug-brk --compilers js:babel/register --reporter spec",
         "semantic-release": "semantic-release pre && npm publish && semantic-release post"
     },
     "dependencies": {

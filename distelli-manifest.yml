@@ -1,0 +1,21 @@
+jlindholm/fluent-sql:
+
+  PkgInclude:
+    - '*'
+
+  Build:
+    - echo "Begin Build"
+    - npm install
+    - npm run test:single
+
+  PreInstall:
+    - echo "Begin PreInstall"
+    - sudo apt-get -y update
+    - sudo apt-get -y install nodejs
+    - sudo apt-get -y install npm
+
+  PostInstall:
+    - echo "Begin PostInstall"
+
+  # Exec:
+  #   - /usr/bin/nodejs app.js

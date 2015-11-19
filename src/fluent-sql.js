@@ -136,6 +136,7 @@ export class SqlColumn {
             this.Alias = sqlObject.Alias;
             this.Not = sqlObject.Not;
             this.Values = sqlObject.Values;
+            this._grouped = sqlObject._grouped;
         } else if (sqlObject != null && sqlObject.Literal) {
             this.Literal = sqlObject.Literal;
             this.Alias = sqlObject.Alias;
@@ -152,66 +153,59 @@ export class SqlColumn {
     qualifiedName(sqlQuery) {
         return this.Literal || sprintf('%s.%s', this.Table.Alias.sqlEscape(sqlQuery, 'table-alias'), this.ColumnName);
     }
-
     as(alias) {
         var col = new SqlColumn(this);
         col.Alias = alias;
         return col;
     }
-
     using(values) {
         var col = new SqlColumn(this);
         col.Values = values;
         return col;
     }
-
+    groupBy() {
+        var col = new SqlColumn(this);
+        col._grouped = true;
+        return col;
+    }
     get Table() {
         return this._table;
     }
-
     set Table(v) {
         this._table = v;
     }
-
     get ColumnName() {
         return this._columnName;
     }
-
     set ColumnName(v) {
         this._columnName = v;
     }
-
     get Literal() {
         return this._literal;
     }
-
     set Literal(v) {
         this._literal = v;
     }
-
     get Alias() {
         return this._alias;
     }
-
     set Alias(v) {
         this._alias = v;
     }
-
     get Not() {
         return this._not;
     }
-
     set Not(v) {
         this._not = v;
     }
-
     get Values() {
         return this._values;
     }
-
     set Values(v) {
         this._values = v;
     }
+    get Grouped() { return this._grouped; }
+    set Grouped(v) { this._grouped = v; }
     eq (val) {
         return new SqlWhere({Column: this, Op: '=', Value: val});
     };
@@ -403,8 +397,6 @@ export class SqlQuery {
     set Wheres(v) { this._wheres = v; }
     get OrderBy() { return this._orderBy; }
     set OrderBy(v) { this._orderBy = v; }
-    get GroupBy() { return this._groupBy; }
-    set GroupBy(v) { this._groupBy = v; }
     get Having() { return this._having; }
     set Having(v) { this._having = v; }
     sqlEscape (str, level) {
@@ -524,16 +516,6 @@ export class SqlQuery {
         this.Having.push(whereClause);
         return this;
     }
-    groupBy () {
-        sliced(arguments).reduce(function (cur, next) {
-            if (util.isArray(next)) {
-                return cur.concat(next);
-            }
-            cur.push(next);
-            return cur;
-        }, this.GroupBy);
-        return this;
-    }
     orderBy () {
         sliced(arguments).reduce(function (cur, next) {
             if (util.isArray(next)) {
@@ -580,8 +562,6 @@ export class SqlQuery {
      *                          return null if not replacement
      * @return { fetchSql, countSql, values, hasEncrypted }
      */
-// decryptFunction - table name, column name, boolean - should is use the qualified name (ie. table.column)
-// maskFunction - table name, column name, select term (this will include decryption if it needs to be decrypted)
     genSql (decryptFunction, maskFunction) {
         //var self = this;
 
@@ -591,6 +571,7 @@ export class SqlQuery {
 
         var sql = {};
         var values = [];
+        var groupBy = [];
         var columns = '';
         var orderString;
         var data;
@@ -608,6 +589,9 @@ export class SqlQuery {
                         }
                     }
                 }
+                if ( c.Grouped ) {
+                    groupBy.push(sprintf('(%s)', c.Literal));
+                }
             } else {
                 var literal = decryptFunction ? decryptFunction(c, true) : null;
                 hasEncrypted = literal !== null;
@@ -620,6 +604,10 @@ export class SqlQuery {
 
                 if (!orderString) {
                     orderString = c.Alias.sqlEscape(this, 'column-alias');
+                }
+
+                if ( c.Grouped ) {
+                    groupBy.push(literal);
                 }
             }
         }, this);
@@ -642,15 +630,11 @@ export class SqlQuery {
 
         var having = this.BuildWherePart(this.Having, values, 'and');
 
-        var group = '';
-        this.GroupBy.forEach(function (g, idx) {
-            group += (idx > 0 ? ',' : '') + sprintf('%s.%s', g.TableName, g.ColumnName);
-        });
+        var select = sprintf('SELECT%s%s', (this.topCount ? ' TOP ' + this.topCount : ''), (this.Distinct ? ' DISTINCT' : '')) + columns
+        + '\nFROM' + from + join;
 
-        var select = sprintf('SELECT%s%s', (this.topCount ? ' TOP ' + this.topCount : ''), (this.Distinct ? ' DISTINCT' : '')) + columns + '\nFROM' + from + join;
-
-        if (group && group !== '') {
-            select += '\nGROUP BY ' + group;
+        if (groupBy.length > 0) {
+            select += '\nGROUP BY ' + groupBy.join();
         }
         if (having && having !== '') {
             select += '\nHAVING ' + having;

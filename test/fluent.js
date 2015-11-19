@@ -329,6 +329,50 @@ describe('fluent sql tests', function() {
         });
     });
 
+    describe('SqlQuery Group By clause tests', function() {
+        it('should allow you to group by the selected columns', function() {
+            var query = new SqlQuery()
+                .select(business.taxId.groupBy())
+                .select(new SqlColumn(null, null, 'count(*)').as('count'))
+                .from(business);
+
+            var cmd = query.genSql();
+            var expected = 'SELECT' +
+                    '\n[business].tax_id as [taxId],'+
+                    '\n(count(*)) as [count]'+
+                    '\nFROM'+
+                    '\nbusiness as [business]'+
+                    '\nGROUP BY [business].tax_id';
+            expect(expected).to.equal(cmd.fetchSql);
+
+            query = query.pageSize(2);
+            cmd = query.genSql();
+            var fetchSql =
+                'SELECT * FROM (' +
+                '\nSELECT *, row_number() OVER (ORDER BY [taxId]) as Paging_RowNumber FROM (' +
+                '\nSELECT' +
+                '\n[business].tax_id as [taxId],' +
+                '\n(count(*)) as [count]' +
+                '\nFROM' +
+                '\nbusiness as [business]' +
+                '\nGROUP BY [business].tax_id' +
+                '\n) base_query' +
+                '\n) as detail_query WHERE Paging_RowNumber BETWEEN 0 AND 2';
+            expect(fetchSql).to.equal(cmd.fetchSql);
+
+            var countSql =
+                'SELECT count(*) as RecordCount FROM (' +
+                '\nSELECT' +
+                '\n[business].tax_id as [taxId],' +
+                '\n(count(*)) as [count]' +
+                '\nFROM' +
+                '\nbusiness as [business]' +
+                '\nGROUP BY [business].tax_id' +
+                '\n) count_tbl';
+            expect(countSql).to.equal(cmd.countSql);
+        });
+    });
+
     describe('SqlQuery Where clause tests', function() {
         it('should handle a simple where clause', function() {
             var query =new SqlQuery()

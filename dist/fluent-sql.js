@@ -164,7 +164,7 @@ var SqlColumn = (function () {
             this.Alias = sqlObject.Alias;
             this.Not = sqlObject.Not;
             this.Values = sqlObject.Values;
-            this.groupBy = sqlObject.groupBy;
+            this._grouped = sqlObject._grouped;
         } else if (sqlObject != null && sqlObject.Literal) {
             this.Literal = sqlObject.Literal;
             this.Alias = sqlObject.Alias;
@@ -201,7 +201,7 @@ var SqlColumn = (function () {
         key: 'groupBy',
         value: function groupBy() {
             var col = new SqlColumn(this);
-            col.groupBy = true;
+            col._grouped = true;
             return col;
         }
     }, {
@@ -356,6 +356,14 @@ var SqlColumn = (function () {
         },
         set: function set(v) {
             this._values = v;
+        }
+    }, {
+        key: 'Grouped',
+        get: function get() {
+            return this._grouped;
+        },
+        set: function set(v) {
+            this._grouped = v;
         }
     }]);
 
@@ -697,8 +705,6 @@ var SqlQuery = (function () {
          *                          return null if not replacement
          * @return { fetchSql, countSql, values, hasEncrypted }
          */
-        // decryptFunction - table name, column name, boolean - should is use the qualified name (ie. table.column)
-        // maskFunction - table name, column name, select term (this will include decryption if it needs to be decrypted)
     }, {
         key: 'genSql',
         value: function genSql(decryptFunction, maskFunction) {
@@ -728,8 +734,8 @@ var SqlQuery = (function () {
                             }
                         }
                     }
-                    if (c.groupBy === true) {
-                        groupBy.push(strintf('(%s)', c.Literal));
+                    if (c.Grouped) {
+                        groupBy.push(sprintf('(%s)', c.Literal));
                     }
                 } else {
                     var literal = decryptFunction ? decryptFunction(c, true) : null;
@@ -745,7 +751,7 @@ var SqlQuery = (function () {
                         orderString = c.Alias.sqlEscape(this, 'column-alias');
                     }
 
-                    if (c.groupBy === true) {
+                    if (c.Grouped) {
                         groupBy.push(literal);
                     }
                 }
@@ -765,7 +771,7 @@ var SqlQuery = (function () {
 
             var select = sprintf('SELECT%s%s', this.topCount ? ' TOP ' + this.topCount : '', this.Distinct ? ' DISTINCT' : '') + columns + '\nFROM' + from + join;
 
-            if (groupBy.size > 0) {
+            if (groupBy.length > 0) {
                 select += '\nGROUP BY ' + groupBy.join();
             }
             if (having && having !== '') {

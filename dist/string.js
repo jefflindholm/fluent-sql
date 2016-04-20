@@ -1,4 +1,6 @@
-(function() {
+'use strict';
+
+(function () {
     'use strict';
 
     var stringFunctions = {};
@@ -20,7 +22,7 @@
         var result = this.replace(/[A-Z]/g, function (m) {
             return "_" + m.toLowerCase();
         });
-        return (result[0] === '_') ? result.substring(1) : result;
+        return result[0] === '_' ? result.substring(1) : result;
     };
     stringFunctions.capitalizeFirst = function () {
         return this.charAt(0).toUpperCase() + this.slice(1);
@@ -38,8 +40,7 @@
         }
         Object.defineProperty(String.prototype, key, {
             value: stringFunctions[key],
-            writable: true,
+            writable: true
         });
     }
-
 })();

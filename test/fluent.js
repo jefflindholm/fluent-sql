@@ -1,5 +1,6 @@
 //import expect from 'chai';
 //import sprintf from 'sprintf-js';
+import '../src/string';
 import {SqlQuery} from '../src/fluent-sql.js';
 import {SqlTable} from '../src/fluent-sql.js';
 import {SqlColumn} from '../src/fluent-sql.js';

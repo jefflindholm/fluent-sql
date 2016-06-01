@@ -1,7 +1,4 @@
 import './string.js';
-import sliced from 'sliced';
-import util from 'util';
-import {sprintf} from 'sprintf-js';
 
 export default  class SqlWhere {
     constructor(details) {
@@ -15,7 +12,7 @@ export default  class SqlWhere {
             this.Value = details.Value;
         }
         this.add = function (whereClause) {
-            var result = this;
+            let result = this;
             if (this.Column != null) {
                 result = new SqlWhere();
                 result.type = this.type;
@@ -69,7 +66,7 @@ export default  class SqlWhere {
 
     or(whereClause) {
         if (this.type && this.type !== 'or') {
-            throw {location: 'SqlWhere::or', message: "cannot add 'or' to 'and' group"};
+            throw {location: 'SqlWhere::or', message: 'cannot add \'or\' to \'and\' group'};
         }
         this.type = 'or';
         return this.add(whereClause);
@@ -77,7 +74,7 @@ export default  class SqlWhere {
 
     and(whereClause) {
         if (this.type && this.type !== 'and') {
-            throw {location: 'SqlWhere::and', message: "cannot add 'and' to 'or' group"};
+            throw {location: 'SqlWhere::and', message: 'cannot add \'and\' to \'or\' group'};
         }
         this.type = 'and';
         return this.add(whereClause);

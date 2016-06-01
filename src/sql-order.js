@@ -1,7 +1,4 @@
 import './string.js';
-import sliced from 'sliced';
-import util from 'util';
-import {sprintf} from 'sprintf-js';
 
 import SqlColumn from './sql-column';
 
@@ -18,7 +15,7 @@ export default  class SqlOrder {
             this.Column = sqlObject;
             this.Direction = dir || 'ASC';
         } else {
-            throw {location: "SqlOrder::constructor", message: "did not pass a SqlColumn object"};
+            throw {location: 'SqlOrder::constructor', message: 'did not pass a SqlColumn object'};
         }
     }
 

@@ -1,13 +1,12 @@
 import './string.js';
 import sliced from 'sliced';
 import util from 'util';
-import {sprintf} from 'sprintf-js';
 
 import SqlColumn from './sql-column';
 import SqlJoin from './sql-join';
 import SqlOrder from './sql-order';
 import SqlTable from './sql-table';
-import SqlWhere from './sql-where';
+//import SqlWhere from './sql-where';
 
 /*
  * @param {options} - either another SqlQuery object to copy options from
@@ -16,6 +15,9 @@ import SqlWhere from './sql-where';
  *                      sqlEndChar - charater used to end escaped names (default is ']')
  *                      escapeLevel - array of zero or more ('table-alias', 'column-alias')
  *                                  - default is ['table-alias', 'column-alias']
+ *                      namedValues - boolean, if false will use ? for the values and just
+ *                                      return an array of values
+ *                                  - default true
  */
 export default  class SqlQuery {
     constructor (options) {
@@ -26,14 +28,15 @@ export default  class SqlQuery {
         this.options = {
             sqlStartChar: '[',
             sqlEndChar: ']',
-            escapeLevel: ['table-alias', 'column-alias']
+            escapeLevel: ['table-alias', 'column-alias'],
+            namedValues: true,
         };
 
         if (options instanceof SqlQuery) {
-            options = options.options;
+            this.options = options.options;
         }
 
-        if (options) for (var attr in options) {
+        if (options) for (const attr in options) {
             if (options.hasOwnProperty(attr)) {
                 this.options[attr] = options[attr];
             }
@@ -48,19 +51,19 @@ export default  class SqlQuery {
         this.Having = [];
         this.variableCount = 0;
 
-        this.BuildWherePart = function (whereArray, values, conjunction) {
-            var sql = '';
-            var data;
+        this.BuildWherePart = (whereArray, values, conjunction) => {
+            let sql = '';
+            let data;
             whereArray.forEach(function (where, idx) {
                 if (idx !== 0) {
-                    sql += sprintf('\n%s ', conjunction.toUpperCase());
+                    sql += `\n${conjunction.toUpperCase()} `;
                 }
-                var piece = '';
+                let piece = '';
                 if (where.Column) {
                     if (where.Value && where.Value.Literal) {
-                        piece = sprintf("%s %s (%s)", where.Column.qualifiedName(this), where.Op, where.Value.Literal);
+                        piece = `${where.Column.qualifiedName(this)} ${where.op} ${where.Value.Literal}`
                         if (where.Value.Values) {
-                            for (var attr in where.Value.Values) {
+                            for (const attr in where.Value.Values) {
                                 if (where.Value.Values.hasOwnProperty(attr)) {
                                     data = {};
                                     data[attr] = where.Value.Values[attr];
@@ -69,38 +72,42 @@ export default  class SqlQuery {
                             }
                         }
                     } else if (where.Value && where.Value.Table) {
-                        piece = sprintf("%s %s (%s)", where.Column.qualifiedName(this), where.Op, where.Value.qualifiedName(this));
+                        piece = `${where.Column.qualifiedName(this)} ${where.Op} ${where.Value.qualifiedName(this)}`;
                     } else {
                         if (!where.Value) {
-                            piece = sprintf('%s %s', where.Column.qualifiedName(this), where.Op);
+                            piece = `${where.Column.qualifiedName(this)} ${where.Op}`;
                         } else {
-                            var varName = where.Column.ColumnName + this.variableCount++;
-                            if (where.Op === "in") {
-                                piece = sprintf('%s %s (:%s)', where.Column.qualifiedName(this), where.Op, varName);
+                            let data;
+                            piece = `${where.Column.qualifiedName(this)} ${where.Op}`
+                            if ( this.options.namedValues ) {
+                                data = where.Value;
+                                piece += ' ? ';
                             } else {
-                                piece = sprintf('%s %s :%s', where.Column.qualifiedName(this), where.Op, varName);
+                                const varName = where.Column.ColumnName + this.variableCount++;
+                                piece += ` (:${varName})`
+                                data = {};
+                                data[varName] = where.Value;
                             }
-                            data = {};
-                            data[varName] = where.Value;
                             values.push(data);
                         }
                     }
                     if (where.Column.Not) {
-                        sql += sprintf('NOT (%s)', piece);
+                        sql += `NOT (${piece})`;
                     } else {
                         sql += piece;
                     }
                 }
                 if (where.Wheres && where.Wheres.length > 0) {
-                    var sub = this.BuildWherePart(where.Wheres, values, where.type);
+                    const sub = this.BuildWherePart(where.Wheres, values, where.type);
                     if (sub && sub.length > 1) {
-                        sql += sprintf("(%s)", sub);
+                        sql += `(${sub})`;
                     }
                 }
             }, this);
             return sql;
         };
     };
+    /* eslint-disable brace-style */
     get Columns() { return this._columns; }
     set Columns(v) { this._columns = v; }
     get From() { return this._from; }
@@ -113,29 +120,30 @@ export default  class SqlQuery {
     set OrderBy(v) { this._orderBy = v; }
     get Having() { return this._having; }
     set Having(v) { this._having = v; }
-    sqlEscape (str, level) {
+    /* eslint-enable brace-style */
+    sqlEscape = (str, level) => {
         if ((level && this.options.escapeLevel.indexOf(level) > -1) || !level) {
             return this.options.sqlStartChar + str + this.options.sqlEndChar;
         } else {
             return str;
         }
     }
-    page (page) {
+    page = (page) => {
         this.pageNo = page;
         return this;
     }
-    pageSize (pageSize) {
+    pageSize = (pageSize) => {
         this.itemsPerPage = pageSize;
         return this;
     }
-    top (val) {
+    top = (val) => {
         this.topCount = val;
         return this;
     };
-    addColumns () {
-        sliced(arguments).reduce(function (cur, next) {
+    addColumns = () => {
+        sliced(arguments).reduce((cur, next) => {
             if (util.isArray(next)) {
-                next.forEach(function (c) {
+                next.forEach( (c) => {
                     cur.push(new SqlColumn(c));
                 });
             } else {
@@ -152,16 +160,15 @@ export default  class SqlQuery {
      *                         example: you are selecting buildFullNameFunc(first, last, middle) and dont want to order by the function also, use
      *                         { 'name' : [FirstColumn, LastColumn, MiddleColumn] } and order by 'name <dir>'
      */
-    applyOrder (defaultSqlTable, orderString, overrides) {
-        var self = this;
+    applyOrder = (defaultSqlTable, orderString, overrides) => {
         if (orderString) {
-            var col;
-            var table;
-            var parts;
-            var dir;
-            orderString.split(',').forEach(function (o) {
+            let col;
+            let table;
+            let parts;
+            let dir;
+            orderString.split(',').forEach( (o) => {
                 parts = o.trim().split(' ');
-                dir = parts.length > 1 ? parts[1] : "ASC";
+                dir = parts.length > 1 ? parts[1] : 'ASC';
                 parts = parts[0].split('.');
                 if (parts.length > 1) {
                     col = parts[1].toSnakeCase();
@@ -172,68 +179,66 @@ export default  class SqlQuery {
                 }
 
                 if (overrides && overrides.hasOwnProperty(col)) {
-                    overrides[col].forEach(function (overCol) {
-                        self.orderBy(overCol.dir(dir));
+                    overrides[col].forEach((overCol) => {
+                        this.orderBy(overCol.dir(dir));
                     });
                 } else {
                     if (!(defaultSqlTable instanceof SqlTable)) {
                         throw {
                             location: 'SqlQuery::applyOrder',
-                            message: 'defaultSqlTable is not an instance of SqlTable'
+                            message: 'defaultSqlTable is not an instance of SqlTable',
                         };
                     }
-                    self.orderBy((new SqlColumn(table, col)).dir(dir));
+                    this.orderBy((new SqlColumn(table, col)).dir(dir));
                 }
             });
         }
         return this;
     }
-    select (query) {
-        var self = this;
+    select = (query) => {
         if (query.Columns) {
-            query.Columns.forEach(function (c) {
-                //self.Columns.push({TableName: c.TableName, Alias: c.Alias, Name: c.Name});
-                self.Columns.push(new SqlColumn(c));
+            query.Columns.forEach( (c) => {
+                this.Columns.push(new SqlColumn(c));
             });
         } else {
             this.addColumns.apply(this, arguments);
         }
         return this;
     }
-    from (sqlTable) {
+    from = (sqlTable) => {
         if (!(sqlTable instanceof SqlTable)) {
             throw {location: 'SqlQuery::from', message: 'from clause must be a SqlTable'};
         }
         this.From.push(sqlTable);
         return this;
     };
-    join (joinClause) {
+    join = (joinClause) => {
         if (!(joinClause instanceof SqlJoin)) {
             throw {location: 'SqlQuery::join', message: 'clause is not a SqlJoin'};
         }
         this.Joins.push(joinClause);
         return this;
     }
-    left (joinClause) {
-        joinClause.Left = true;
-        return this.join(joinClause);
+    left = (joinClause) => {
+        const clause = Object.assign({}, joinClause, {Left: true});
+        return this.join(clause);
     }
-    right (joinClause) {
-        joinClause.Right = true;
-        return this.join(joinClause);
+    right = (joinClause) => {
+        const clause = Object.assign({}, joinClause, {Right: true});
+        return this.join(clause);
     }
-    where (whereClause) {
+    where = (whereClause) => {
         this.Wheres.push(whereClause);
         return this;
     }
-    having (whereClause) {
+    having = (whereClause) => {
         this.Having.push(whereClause);
         return this;
     }
-    orderBy () {
-        sliced(arguments).reduce(function (cur, next) {
+    orderBy = () => {
+        sliced(arguments).reduce((cur, next) => {
             if (util.isArray(next)) {
-                next.forEach(function (i) {
+                next.forEach((i) => {
                     cur.push(new SqlOrder(i));
                 });
             } else {
@@ -243,24 +248,22 @@ export default  class SqlQuery {
         }, this.OrderBy);
         return this;
     }
-    distinct () {
+    distinct = () => {
         this.Distinct = true;
         return this;
     }
-    removeColumn (sqlColumn) {
-        var array = this.Columns;
-        var i;
-        for (i = 0; i < array.length; i++) {
+    removeColumn = (sqlColumn) => {
+        const array = this.Columns;
+        for (let i = 0; i < array.length; i++) {
             if (array[i].ColumnName === sqlColumn.ColumnName && array[i].TableName === sqlColumn.TableName && array[i].Alias === sqlColumn.Alias) {
                 array.splice(i, 1);
             }
         }
         return this;
     }
-    updateAlias (sqlColumn, newAlias) {
-        var array = this.Columns;
-        var i;
-        for (i = 0; i < array.length; i++) {
+    updateAlias = (sqlColumn, newAlias) => {
+        const array = this.Columns;
+        for (let i = 0; i < array.length; i++) {
             if (array[i].ColumnName === sqlColumn.ColumnName && array[i].TableName === sqlColumn.TableName && array[i].Alias === sqlColumn.Alias) {
                 array[i].Alias = newAlias;
                 break;
@@ -276,26 +279,26 @@ export default  class SqlQuery {
      *                          return null if not replacement
      * @return { fetchSql, countSql, values, hasEncrypted }
      */
-    genSql (decryptFunction, maskFunction) {
-        //var self = this;
+    genSql = (decryptFunction, maskFunction) => {
 
         if (this.From && this.From.length < 1) {
             throw {location: 'toSql', message: 'No FROM in query'};
         }
 
-        var sql = {};
-        var values = [];
-        var groupBy = [];
-        var columns = '';
-        var orderString;
-        var data;
-        var hasEncrypted = false;
-        this.Columns.forEach(function (c, idx) {
+        const sql = {};
+        const values = [];
+        const groupBy = [];
+        let columns = '';
+        let orderString;
+        let data;
+        let hasEncrypted = false;
+        this.Columns.forEach((c, idx) => {
             if (c.Literal) {
-                columns += (idx > 0 ? ',' : '') + sprintf('\n(%s) as %s', c.Literal, c.Alias.sqlEscape(this, 'column-alias'));
+                columns += `${(idx > 0 ? ',' : '')}\n(${c.Literal}) as ${c.Alias.sqlEscape(this, 'column-alias')}`;
+                console.log('columns', columns)
                 // handle any columns that might have values
                 if (c.Values) {
-                    for (var attr in c.Values) {
+                    for (const attr in c.Values) {
                         if (c.Values.hasOwnProperty(attr)) {
                             data = {};
                             data[attr] = c.Values[attr];
@@ -304,17 +307,17 @@ export default  class SqlQuery {
                     }
                 }
                 if ( c.Grouped ) {
-                    groupBy.push(sprintf('(%s)', c.Literal));
+                    groupBy.push(`(${c.Literal})`);
                 }
             } else {
-                var literal = decryptFunction ? decryptFunction(c, true) : null;
+                let literal = decryptFunction ? decryptFunction(c, true) : null;
                 hasEncrypted = literal !== null;
                 literal = literal || c.qualifiedName(this);
                 if (maskFunction) {
                     literal = maskFunction(c, literal) || literal;
                 }
 
-                columns += (idx > 0 ? ',' : '') + sprintf('\n%s as %s', literal, c.Alias.sqlEscape(this, 'column-alias'));
+                columns += `${(idx > 0 ? ',' : '')}\n${literal} as ${c.Alias.sqlEscape(this, 'column-alias')}`;
 
                 if (!orderString) {
                     orderString = c.Alias.sqlEscape(this, 'column-alias');
@@ -325,40 +328,40 @@ export default  class SqlQuery {
                 }
             }
         }, this);
-        var from = '';
+        let from = '';
         this.From.forEach(function (f, idx) {
-            from += (idx > 0 ? ',' : '') + sprintf('\n%s as %s', f.TableName, f.Alias.sqlEscape(this, 'table-alias'));
+            from += `${(idx > 0 ? ',' : '')}\n${f.TableName} as ${f.Alias.sqlEscape(this, 'table-alias')}`;
         }, this);
-        var join = '';
-        this.Joins.forEach(function (j, idx) {
-            join += sprintf("\n%1$sJOIN %2$s as %3$s on %3$s.%4$s = %5$s.%6$s",
-                j.Left ? 'LEFT ' : (j.Right ? 'RIGHT ' : ''),
-                j.From.Table.TableName,
-                j.From.Table.Alias.sqlEscape(this, 'table-alias'),
-                j.From.ColumnName,
-                j.To.Table.Alias.sqlEscape(this, 'table-alias'),
-                j.To.ColumnName);
+        let join = '';
+        this.Joins.forEach( (j, idx) => {
+            const type = j.Left ? 'LEFT ' : (j.Right ? 'RIGHT ' : ''); // eslint-disable-line no-nested-ternary
+            const from = j.From.Table.TableName;
+            const alias = j.From.Table.Alias.sqlEscape(this, 'table-alias');
+            const fromCol = j.From.ColumnName;
+            const to = j.To.Table.Alias.sqlEscape(this, 'table-alias');
+            const toCol = j.To.ColumnName;
+            join += `${type}JOIN ${from} as ${alias} on ${alias}.${fromCol} = ${to}.${toCol}`
         }, this);
 
-        var where = this.BuildWherePart(this.Wheres, values, 'and');
+        const where = this.BuildWherePart(this.Wheres, values, 'and');
 
-        var having = this.BuildWherePart(this.Having, values, 'and');
+        const having = this.BuildWherePart(this.Having, values, 'and');
 
-        var select = sprintf('SELECT%s%s', (this.topCount ? ' TOP ' + this.topCount : ''), (this.Distinct ? ' DISTINCT' : '')) + columns
-        + '\nFROM' + from + join;
+        const top = (this.topCount ? ` TOP ${this.topCount}` : '');
+        let select = `SELECT${top}${(this.Distinct ? ' DISTINCT' : '')} ${columns}\nFROM ${from} ${join}`;
 
         if (groupBy.length > 0) {
-            select += '\nGROUP BY ' + groupBy.join();
+            select += `\nGROUP BY ${groupBy.join()}`;
         }
         if (having && having !== '') {
-            select += '\nHAVING ' + having;
+            select += `\nHAVING ${having}`;
         }
         if (where && where !== '') {
-            select += '\nWHERE ' + where;
+            select += `\nWHERE ${where}`;
         }
 
-        var page = this.pageNo;
-        var pageSize = this.itemsPerPage;
+        let page = this.pageNo;
+        let pageSize = this.itemsPerPage;
 
         if (page && !pageSize) {
             pageSize = 50;
@@ -367,28 +370,28 @@ export default  class SqlQuery {
             page = 1;
         }
 
-        var countSql;
-        var fetchSql;
-        var order = '';
+        let countSql;
+        let fetchSql;
+        let order = '';
         if (page) {
             if (this.OrderBy && this.OrderBy.length > 0) {
-                this.OrderBy.forEach(function (o, idx) {
+                this.OrderBy.forEach( (o, idx) => {
                     // since we know we are going to be ordering over a select, we don't need a table
                     // in this, just use the column alias
-                    order += (idx > 0 ? ',' : '') + sprintf('%s %s', o.Column.Alias.sqlEscape(this, 'column-alias'), o.Direction);
+                    order += `${(idx > 0 ? ',' : '')}${o.Column.Alias.sqlEscape(this, 'column-alias')} ${o.Direction}`;
                 }, this);
                 orderString = order;
             }
-            countSql = sprintf('SELECT count(*) as RecordCount FROM (\n%s\n) count_tbl', select);
-            var baseSql = sprintf('SELECT *, row_number() OVER (ORDER BY %s) as Paging_RowNumber FROM (\n%s\n) base_query', orderString, select);
-            fetchSql = sprintf('SELECT * FROM (\n%s\n) as detail_query WHERE Paging_RowNumber BETWEEN %d AND %d', baseSql, (page - 1) * pageSize, page * pageSize);
+            countSql = `SELECT count(*) as RecordCount FROM (\n${select}\n) count_tbl`;
+            const baseSql = `SELECT *, row_number() OVER (ORDER BY ${orderString}) as Paging_RowNumber FROM (\n${select}\n) base_query`;
+            fetchSql = `SELECT * FROM (\n${baseSql}\n) as detail_query WHERE Paging_RowNumber BETWEEN ${(page - 1) * pageSize} AND ${page * pageSize}`;
         } else {
             this.OrderBy.forEach(function (o, idx) {
-                order += (idx > 0 ? ',' : '') + sprintf('%s %s', o.Column.qualifiedName(this), o.Direction);
+                order += `${(idx > 0 ? ',' : '')} ${o.Column.qualifiedName(this)} ${o.Direction}`;
             }, this);
 
             if (order && order !== '') {
-                fetchSql = select + '\nORDER BY ' + order;
+                fetchSql = `${select}\nORDER BY ${order}`;
             } else {
                 fetchSql = select;
             }
@@ -397,8 +400,8 @@ export default  class SqlQuery {
         sql.countSql = countSql;
         sql.hasEncrypted = hasEncrypted;
         sql.values = {};
-        values.forEach(function (v) {
-            for (var attr in v) {
+        values.forEach( (v) => {
+            for (const attr in v) {
                 if (v.hasOwnProperty(attr)) {
                     sql.values[attr] = v[attr];
                 }

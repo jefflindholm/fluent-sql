@@ -1,9 +1,4 @@
-"use strict";
-
 import './string.js';
-import sliced from 'sliced';
-import util from 'util';
-import {sprintf} from 'sprintf-js';
 
 import SqlQuery from './sql-query';
 
@@ -18,12 +13,14 @@ export { default as  SqlQuery } from './sql-query';
 if (!String.prototype.sqlEscape) {
     (function () {
         'use strict';
-        var sqlEscape = function (sqlQuery, level) {
-
-            if (!sqlQuery || !sqlQuery.sqlEscape || typeof sqlQuery.sqlEscape !== "function") {
-                sqlQuery = new SqlQuery();
+        const sqlEscape = function (sqlQuery, level) {
+            let query;
+            if (!sqlQuery || !sqlQuery.sqlEscape || typeof sqlQuery.sqlEscape !== 'function') {
+                query = new SqlQuery();
+            } else {
+                query = sqlQuery;
             }
-            return sqlQuery.sqlEscape(this, level);
+            return query.sqlEscape(this, level);
         }
         String.prototype.sqlEscape = sqlEscape;
     })();

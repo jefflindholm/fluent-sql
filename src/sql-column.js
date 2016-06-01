@@ -1,11 +1,8 @@
 import './string.js';
 import sliced from 'sliced';
 import util from 'util';
-import {sprintf} from 'sprintf-js';
 
-import SqlJoin from './sql-join';
 import SqlOrder from './sql-order';
-import SqlQuery from './sql-query';
 import SqlTable from './sql-table';
 import SqlWhere from './sql-where';
 
@@ -36,20 +33,20 @@ export default  class SqlColumn {
     }
 
     qualifiedName(sqlQuery) {
-        return this.Literal || sprintf('%s.%s', this.Table.Alias.sqlEscape(sqlQuery, 'table-alias'), this.ColumnName);
+        return this.Literal || `${this.Table.Alias.sqlEscape(sqlQuery, 'table-alias')}.${this.ColumnName}`;
     }
     as(alias) {
-        var col = new SqlColumn(this);
+        const col = new SqlColumn(this);
         col.Alias = alias;
         return col;
     }
     using(values) {
-        var col = new SqlColumn(this);
+        const col = new SqlColumn(this);
         col.Values = values;
         return col;
     }
     groupBy() {
-        var col = new SqlColumn(this);
+        const col = new SqlColumn(this);
         col._grouped = true;
         return col;
     }
@@ -89,8 +86,12 @@ export default  class SqlColumn {
     set Values(v) {
         this._values = v;
     }
-    get Grouped() { return this._grouped; }
-    set Grouped(v) { this._grouped = v; }
+    get Grouped() {
+        return this._grouped;
+    }
+    set Grouped(v) {
+        this._grouped = v;
+    }
     eq (val) {
         return new SqlWhere({Column: this, Op: '=', Value: val});
     };
@@ -116,17 +117,31 @@ export default  class SqlColumn {
         return new SqlWhere({Column: this, Op: '<=', Value: val});
     }
     like (val) {
-        var value = val;
+        let value = val;
         if (typeof value === 'string') {
-            value = '%' + value + '%';
+            value = `%${value}%`;
         }
         return new SqlWhere({Column: this, Op: 'like', Value: value});
     }
-    in () {
-        var values = [];
-        sliced(arguments).reduce(function (cur, next) {
+    starts (val) {
+        let value = val;
+        if (typeof value === 'string') {
+            value = `${value}%`;
+        }
+        return new SqlWhere({Column: this, Op: 'like', Value: value});
+    }
+    ends(val) {
+        let value = val;
+        if (typeof value === 'string') {
+            value = `%${value}`;
+        }
+        return new SqlWhere({Column: this, Op: 'like', Value: value});
+    }
+    in (...args) {
+        const values = [];
+        sliced(...args).reduce( (cur, next) => {
             if (util.isArray(next)) {
-                next.forEach(function (c) {
+                next.forEach( (c) => {
                     cur.push(c);
                 });
             } else {
@@ -140,10 +155,11 @@ export default  class SqlColumn {
         return this.gte(val1).and(this.lte(val2));
     }
     op (op, val1, val2) {
-        if (!this[op]) {
-            op = op.toLowerCase();
+        let o = op;
+        if (!this[o]) {
+            o = o.toLowerCase();
         }
-        return this[op](val1, val2);
+        return this[o](val1, val2);
     }
     asc () {
         return new SqlOrder(this, 'ASC');
@@ -158,7 +174,7 @@ export default  class SqlColumn {
         return new SqlOrder(this, dir);
     }
     not () {
-        var col = new SqlColumn(this);
+        const col = new SqlColumn(this);
         col.Not = true;
         return col;
     }

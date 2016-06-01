@@ -1,14 +1,6 @@
 import './string.js';
-import sliced from 'sliced';
-import util from 'util';
-import {sprintf} from 'sprintf-js';
 
-import SqlColumn from './sql-column';
-import SqlJoin from './sql-join';
-import SqlOrder from './sql-order';
-import SqlQuery from './sql-query';
 import SqlTable from './sql-table';
-import SqlWhere from './sql-where';
 
 export default class SqlBuilder {
     /*
@@ -43,59 +35,58 @@ export default class SqlBuilder {
         if (!(sqlTable instanceof SqlTable)) {
             throw {location: 'SqlBuilder::update', message: 'sqlTable is not an instance of SqlTable'};
         }
-        var item = 1;
-        var data = {id: details.id};
-        var update = '';
-        var attr;
-        var variable;
-        var encrypted;
-        var column;
-        var hasEncryptedValues = false;
+        let item = 1;
+        const data = {id: details.id};
+        let update = '';
+        let attr;
+        let variable;
+        let encrypted;
+        let column;
+        let hasEncryptedValues = false;
         for (attr in details) {
             if (details.hasOwnProperty(attr) && attr !== 'id' && sqlTable.hasOwnProperty(attr)) {
                 column = sqlTable[attr];
                 variable = attr + item.toString();
                 data[variable] = details[attr];
                 encrypted = (encryptFunction ? encryptFunction(column, variable) : null);
-                variable = encrypted || ':' + variable;
+                variable = encrypted || `:${variable}`;
                 if (encrypted != null) {
                     hasEncryptedValues = true;
                 }
-                update += (item === 1 ? '' : ',') + sprintf("%s = %s", attr.toSnakeCase(), variable);
+                update += `${(item === 1 ? '' : ',')}${attr.toSnakeCase()} = ${variable}`;
                 item += 1;
             }
         }
         return {
-            sql: sprintf('UPDATE %s SET %s WHERE id = :id', sqlTable.getTable(), update),
+            sql: `UPDATE ${sqlTable.getTable()} SET ${update} WHERE id = :id`,
             values: data,
-            hasEncrypted: hasEncryptedValues
+            hasEncrypted: hasEncryptedValues,
         };
     };
     static insert (sqlTable, details, newId, encryptFunction) {
         if (!(sqlTable instanceof SqlTable)) {
             throw {location: 'SqlBuilder::insert', message: 'sqlTable is not an instance of SqlTable'};
         }
-        var item = 1;
-        var data = {};
-        var attr;
-        var variable;
-        var encrypted;
-        var column;
-        var columnList = '';
-        var variableList = '';
-        var hasEncryptedValues = false;
-        for (attr in details) {
+        let item = 1;
+        const data = {};
+        let variable;
+        let encrypted;
+        let column;
+        let columnList = '';
+        let variableList = '';
+        let hasEncryptedValues = false;
+        for (const attr in details) {
             if (details.hasOwnProperty(attr) && attr !== 'id' && sqlTable.hasOwnProperty(attr)) {
                 column = sqlTable[attr];
                 variable = attr + item.toString();
                 data[variable] = details[attr];
                 columnList += (item === 1 ? '' : ',') + attr.toSnakeCase();
                 encrypted = (encryptFunction ? encryptFunction(column, variable) : null);
-                variable = encrypted || ':' + variable;
+                variable = encrypted || `:${variable}`;
                 if (encrypted != null) {
                     hasEncryptedValues = true;
                 }
-                variableList += (item === 1 ? '' : ',') + variable;
+                variableList += `${(item === 1 ? '' : ',')}${variable}`;
                 item += 1;
             }
         }
@@ -106,9 +97,9 @@ export default class SqlBuilder {
         }
 
         return {
-            sql: sprintf('INSERT INTO %s (%s) VALUES (%s)', sqlTable.getTable(), columnList, variableList),
+            sql: `INSERT INTO ${sqlTable.getTable()} (${columnList}) VALUES (${variableList})`,
             values: data,
-            hasEncrypted: hasEncryptedValues
+            hasEncrypted: hasEncryptedValues,
         };
     };
 }

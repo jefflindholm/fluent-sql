@@ -19,8 +19,7 @@
     "lint": "eslint src/*.js"
   },
   "dependencies": {
-    "sliced": "^1.0.1",
-    "sprintf-js": "^1.0.3"
+    "util": "^0.10.3"
   },
   "devDependencies": {
     "babel": "^6.5.2",
@@ -32,6 +31,7 @@
     "babel-preset-stage-0": "^6.5.0",
     "blanket": "^1.2.3",
     "chai": "^3.5.0",
+    "circular-json": "^0.3.0",
     "commitizen": "^2.8.0",
     "cz-conventional-changelog": "^1.1.5",
     "es5-shim": "^4.5.8",

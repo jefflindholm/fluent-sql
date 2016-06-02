@@ -187,7 +187,7 @@ describe('fluent sql tests', () => {
             expect(cmd.countSql).to.equal(undefined);
             expect(Object.keys(cmd.values).length).to.equal(1);
             const id = Object.keys(cmd.values)[0];
-            expect(cmd.fetchSql.trim()).to.equal(`SELECT\n[b].id as [id]\nFROM\nbusiness as [b]\nWHERE [b].id = :${id}`);
+            expect(cmd.fetchSql.trim()).to.equal(`SELECT\n[b].id as [id]\nFROM\nbusiness as [b]\nWHERE [b].id = (:${id})`);
         });
         it('should require a SqlColumn when building a join using on', () => {
             expect(business.on.bind(business, {})).to.throw({ location: 'SqlTable::on', message: 'trying to build join on column not from this table'});
@@ -215,7 +215,7 @@ describe('fluent sql tests', () => {
             expect(cmd.countSql).to.equal(undefined);
             expect(Object.keys(cmd.values).length).to.equal(0);
             const columns = getBusinessCols();
-            expect(cmd.fetchSql.trim()).to.equal(`SELECT ${columns}'\nFROM\nbusiness as [business]`);
+            expect(cmd.fetchSql.trim()).to.equal(`SELECT${columns}\nFROM\nbusiness as [business]`);
         });
         it('should have 2 columns from business when selecting [business].id, business.businessName',  () => {
             const query = new SqlQuery()
@@ -236,7 +236,7 @@ describe('fluent sql tests', () => {
             expect(cmd.fetchSql.trim()).to.equal('SELECT\n[business].id as [id],\n[business].business_name as [businessName]\nFROM\nbusiness as [business]');
         });
         it('should have 1 column from business when selecting star() and removing id others', () => {
-            const query =new SqlQuery()
+            const query = new SqlQuery()
                 .select(business.id,business.businessName).from(business)
                 .removeColumn(business.id)
                 .removeColumn(business.taxId);
@@ -247,7 +247,7 @@ describe('fluent sql tests', () => {
             expect(cmd.fetchSql.trim()).to.equal('SELECT\n[business].business_name as [businessName]\nFROM\nbusiness as [business]');
         });
         it('should be able to update an alias', () => {
-            const query =new SqlQuery()
+            const query = new SqlQuery()
                 .select(business.star()).from(business)
                 .updateAlias(business.id, 'bId');
 
@@ -255,11 +255,11 @@ describe('fluent sql tests', () => {
             expect(cmd.countSql).to.equal(undefined);
             expect(Object.keys(cmd.values).length).to.equal(0);
             const columns = getBusinessCols().replace('\[id\]', '[bId]');
-            expect(cmd.fetchSql.trim()).to.equal('SELECT' + columns + '\nFROM\nbusiness as [business]');
+            expect(cmd.fetchSql.trim()).to.equal(`SELECT${columns}\nFROM\nbusiness as [business]`);
             expect(business.id.Alias).to.equal('id');
         });
         it('should join business_dba on business_id to business on id', () => {
-            const query =new SqlQuery()
+            const query = new SqlQuery()
                 .select(business.id, business.businessName).from(business);
             query.join(business_dba.on(business_dba.businessId).using(business.id));
 
@@ -269,7 +269,7 @@ describe('fluent sql tests', () => {
             expect(cmd.fetchSql.trim()).to.equal('SELECT\n[business].id as [id],\n[business].business_name as [businessName]\nFROM\nbusiness as [business]\nJOIN business_dba as [business_dba] on [business_dba].business_id = [business].id');
         });
         it('should left join business_dba on business_id to business on id', () => {
-            const query =new SqlQuery()
+            const query = new SqlQuery()
                 .select(business.id, business.businessName).from(business);
             query.left(business_dba.on(business_dba.businessId).using(business.id));
 
@@ -279,7 +279,7 @@ describe('fluent sql tests', () => {
             expect(cmd.fetchSql.trim()).to.equal('SELECT\n[business].id as [id],\n[business].business_name as [businessName]\nFROM\nbusiness as [business]\nLEFT JOIN business_dba as [business_dba] on [business_dba].business_id = [business].id');
         });
         it('should right join business_dba on business_id to business on id', () => {
-            const query =new SqlQuery()
+            const query = new SqlQuery()
                 .select(business.id, business.businessName).from(business);
             query.right(business_dba.on(business_dba.businessId).using(business.id));
 
@@ -289,7 +289,7 @@ describe('fluent sql tests', () => {
             expect(cmd.fetchSql.trim()).to.equal('SELECT\n[business].id as [id],\n[business].business_name as [businessName]\nFROM\nbusiness as [business]\nRIGHT JOIN business_dba as [business_dba] on [business_dba].business_id = [business].id');
         });
         it('should handle ordering by columns', () => {
-            const query =new SqlQuery()
+            const query = new SqlQuery()
                 .select(business.id, business.businessName).from(business)
                 .orderBy(business.businessName)
                 .orderBy(business.id.desc());
@@ -301,7 +301,7 @@ describe('fluent sql tests', () => {
         it('should handle litterals in the select', () => {
             const litString = 'select name from business_name where bid = [business].id and foo = :test';
             const literal = new SqlColumn({Literal: litString, Alias: 'name'}).using({test:123});
-            const query =new SqlQuery()
+            const query = new SqlQuery()
                 .select(literal).from(business);
 
             const cmd = query.genSql();
@@ -313,7 +313,7 @@ describe('fluent sql tests', () => {
             expect(cmd.fetchSql.trim()).to.equal(sprintf('SELECT\n(%s) as [name]\nFROM\nbusiness as [business]', litString));
         });
         it('should handle litterals in the select with value', () => {
-            const query =new SqlQuery()
+            const query = new SqlQuery()
                 .select({Literal: 'select name from business_name where business_name.bid = [business].id', Alias: 'name'}).from(business);
 
             const cmd = query.genSql();
@@ -322,8 +322,10 @@ describe('fluent sql tests', () => {
             expect(cmd.fetchSql.trim()).to.equal('SELECT\n(select name from business_name where business_name.bid = [business].id) as [name]\nFROM\nbusiness as [business]');
         });
         it('should select distinct', () => {
-            const query =new SqlQuery()
-                .select(business.businessName).from(business).distinct();
+            const query = new SqlQuery()
+                .select(business.businessName)
+                .from(business)
+                .distinct();
 
             const cmd = query.genSql();
             expect(cmd.countSql).to.equal(undefined);
@@ -334,17 +336,17 @@ describe('fluent sql tests', () => {
 
     describe('SqlQuery Group By clause tests', () => {
         it('should allow you to group by the selected columns', () => {
-            const query = new SqlQuery()
+            let query = new SqlQuery()
                 .select(business.taxId.groupBy())
                 .select(new SqlColumn(null, null, 'count(*)').as('count'))
                 .from(business);
 
-            const cmd = query.genSql();
+            let cmd = query.genSql();
             const expected = 'SELECT' +
-                    '\n[business].tax_id as [taxId],'+
-                    '\n(count(*)) as [count]'+
-                    '\nFROM'+
-                    '\nbusiness as [business]'+
+                    '\n[business].tax_id as [taxId],' +
+                    '\n(count(*)) as [count]' +
+                    '\nFROM' +
+                    '\nbusiness as [business]' +
                     '\nGROUP BY [business].tax_id';
             expect(expected).to.equal(cmd.fetchSql);
 
@@ -378,7 +380,7 @@ describe('fluent sql tests', () => {
 
     describe('SqlQuery Where clause tests', () => {
         it('should handle a simple where clause', () => {
-            const query =new SqlQuery()
+            const query = new SqlQuery()
                 .select(business.id, business.businessName).from(business)
                 .where(business.id.eq(10000));
             const cmd = query.genSql();
@@ -386,10 +388,10 @@ describe('fluent sql tests', () => {
             expect(Object.keys(cmd.values).length).to.equal(1);
             const id = Object.keys(cmd.values)[0];
             expect(cmd.values[id]).to.equal(10000);
-            expect(cmd.fetchSql.trim()).to.equal('SELECT\n[business].id as [id],\n[business].business_name as [businessName]\nFROM\nbusiness as [business]\nWHERE [business].id = :' + id);
+            expect(cmd.fetchSql.trim()).to.equal(`SELECT\n[business].id as [id],\n[business].business_name as [businessName]\nFROM\nbusiness as [business]\nWHERE [business].id = (:${id})`);
         });
         it('should handle a where clause with ands', () => {
-            const query =new SqlQuery()
+            const query = new SqlQuery()
                 .select(business.id, business.businessName).from(business)
                 .where(business.id.eq(10000))
                 .where(business.businessName.eq('fred'));
@@ -402,16 +404,16 @@ describe('fluent sql tests', () => {
             expect(cmd.values[id]).to.equal(10000);
             expect(cmd.values[name]).to.equal('fred');
             expect(cmd.fetchSql.trim()).to.equal(
-                'SELECT\n'+
-                '[business].id as [id],\n'+
-                '[business].business_name as [businessName]\n'+
-                'FROM\n'+
-                'business as [business]\n'+
-                'WHERE [business].id = :' + id
-                + '\nAND [business].business_name = :'+ name);
+                'SELECT\n' +
+                '[business].id as [id],\n' +
+                '[business].business_name as [businessName]\n' +
+                'FROM\n' +
+                'business as [business]\n' +
+                `WHERE [business].id = (:${id})` +
+                `\nAND [business].business_name = (:${name})`);
         });
         it('should handle a where clause using in', () => {
-            const query =new SqlQuery()
+            const query = new SqlQuery()
                 .select(business.id, business.businessName).from(business)
                 .where(business.id.in(10000,10001,10002));
 
@@ -422,15 +424,15 @@ describe('fluent sql tests', () => {
             const id = Object.keys(cmd.values)[0];
             expect(cmd.values[id]).to.eql([10000,10001,10002]);
             expect(cmd.fetchSql.trim()).to.equal(
-                'SELECT\n'+
-                '[business].id as [id],\n'+
-                '[business].business_name as [businessName]\n'+
-                'FROM\n'+
-                'business as [business]\n'+
-                'WHERE [business].id in (:' + id + ')');
+                'SELECT\n' +
+                '[business].id as [id],\n' +
+                '[business].business_name as [businessName]\n' +
+                'FROM\n' +
+                'business as [business]\n' +
+                `WHERE [business].id in (:${id})`);
         });
         it('should handle a where clause using between', () => {
-            const query =new SqlQuery()
+            const query = new SqlQuery()
                 .select(business.id, business.businessName).from(business)
                 .where(business.id.between(10000,10002));
 
@@ -443,17 +445,17 @@ describe('fluent sql tests', () => {
             expect(cmd.values[id1]).to.eql(10000);
             expect(cmd.values[id2]).to.eql(10002);
             expect(cmd.fetchSql.trim()).to.equal(
-                'SELECT\n'+
-                '[business].id as [id],\n'+
-                '[business].business_name as [businessName]\n'+
-                'FROM\n'+
-                'business as [business]\n'+
-                'WHERE ([business].id >= :' + id1 +
-                    '\nAND [business].id <= :' + id2 +')'
+                'SELECT\n' +
+                '[business].id as [id],\n' +
+                '[business].business_name as [businessName]\n' +
+                'FROM\n' +
+                'business as [business]\n' +
+                `WHERE ([business].id >= (:${id1})` +
+                `\nAND [business].id <= (:${id2}))`
             );
         });
         it('should handle a where clause using is null', () => {
-            const query =new SqlQuery()
+            const query = new SqlQuery()
                 .select(business.id,business.businessName).from(business)
                 .where(business.id.isNull())
             ;
@@ -463,16 +465,16 @@ describe('fluent sql tests', () => {
             expect(cmd.countSql).to.equal(undefined);
             expect(Object.keys(cmd.values).length).to.equal(0);
             expect(cmd.fetchSql.trim()).to.equal(
-                'SELECT\n'+
-                '[business].id as [id],\n'+
-                '[business].business_name as [businessName]\n'+
-                'FROM\n'+
-                'business as [business]\n'+
+                'SELECT\n' +
+                '[business].id as [id],\n' +
+                '[business].business_name as [businessName]\n' +
+                'FROM\n' +
+                'business as [business]\n' +
                 'WHERE [business].id IS NULL'
             );
         });
         it('should handle a where clause making it a NOT for the column test', () => {
-            const query =new SqlQuery()
+            const query = new SqlQuery()
                     .select(business.id,business.businessName).from(business)
                     .where(business.id.not().isNull())
                 ;
@@ -482,16 +484,16 @@ describe('fluent sql tests', () => {
             expect(cmd.countSql).to.equal(undefined);
             expect(Object.keys(cmd.values).length).to.equal(0);
             expect(cmd.fetchSql.trim()).to.equal(
-                'SELECT\n'+
-                '[business].id as [id],\n'+
-                '[business].business_name as [businessName]\n'+
-                'FROM\n'+
-                'business as [business]\n'+
+                'SELECT\n' +
+                '[business].id as [id],\n' +
+                '[business].business_name as [businessName]\n' +
+                'FROM\n' +
+                'business as [business]\n' +
                 'WHERE NOT ([business].id IS NULL)'
             );
         });
         it('should handle a where clause using is not null', () => {
-            const query =new SqlQuery()
+            const query = new SqlQuery()
                     .select(business.id,business.businessName).from(business)
                     .where(business.id.isNotNull())
                 ;
@@ -501,16 +503,16 @@ describe('fluent sql tests', () => {
             expect(cmd.countSql).to.equal(undefined);
             expect(Object.keys(cmd.values).length).to.equal(0);
             expect(cmd.fetchSql.trim()).to.equal(
-                'SELECT\n'+
-                '[business].id as [id],\n'+
-                '[business].business_name as [businessName]\n'+
-                'FROM\n'+
-                'business as [business]\n'+
+                'SELECT\n' +
+                '[business].id as [id],\n' +
+                '[business].business_name as [businessName]\n' +
+                'FROM\n' +
+                'business as [business]\n' +
                 'WHERE [business].id IS NOT NULL'
             );
         });
         it('should handle a where clause using a like and add in the %', () => {
-            const query =new SqlQuery()
+            const query = new SqlQuery()
                 .select(business.id,business.businessName).from(business)
                 .where(business.businessName.like('fred'));
             const cmd = query.genSql();
@@ -518,10 +520,10 @@ describe('fluent sql tests', () => {
             expect(Object.keys(cmd.values).length).to.equal(1);
             const name = Object.keys(cmd.values)[0];
             expect(cmd.values[name]).to.equal('%fred%');
-            expect(cmd.fetchSql.trim()).to.equal('SELECT\n[business].id as [id],\n[business].business_name as [businessName]\nFROM\nbusiness as [business]\nWHERE [business].business_name like :' + name);
+            expect(cmd.fetchSql.trim()).to.equal(`SELECT\n[business].id as [id],\n[business].business_name as [businessName]\nFROM\nbusiness as [business]\nWHERE [business].business_name like (:${name})`);
         });
         it('should handle a where clause or\'ed with another where clause', () => {
-            const query =new SqlQuery()
+            const query = new SqlQuery()
                 .select(business.id,business.businessName).from(business)
                 .where(business.businessName.like('fred')
                 .or(business.id.eq(1)))
@@ -535,19 +537,21 @@ describe('fluent sql tests', () => {
             expect(cmd.values[name1]).to.equal('%fred%');
             expect(cmd.values[name2]).to.equal('%d%');
             expect(cmd.values[id]).to.equal(1);
-            expect(cmd.fetchSql.trim()).to.equal('SELECT'+
-                '\n[business].id as [id],'+
-                '\n[business].business_name as [businessName]'+
-                '\nFROM'+
-                '\nbusiness as [business]'+
-                '\nWHERE ([business].business_name like :' + name1 +
-                '\nOR [business].id = :' + id + ')' +
-                    '\nAND [business].business_name like :' + name2
+            expect(cmd.fetchSql.trim()).to.equal('SELECT' +
+                '\n[business].id as [id],' +
+                '\n[business].business_name as [businessName]' +
+                '\nFROM' +
+                '\nbusiness as [business]' +
+                `\nWHERE ([business].business_name like (:${name1})` +
+                `\nOR [business].id = (:${id}))` +
+                `\nAND [business].business_name like (:${name2})`
             );
         });
         it('should handle a where clause linking table columns', () => {
-            const query =new SqlQuery()
-                .select(business.id,business.businessName).from(business).from(business_dba)
+            const query = new SqlQuery()
+                .select(business.id,business.businessName)
+                .from(business)
+                .from(business_dba)
                 .where(business.id.eq(business_dba.businessId));
             const cmd = query.genSql();
             expect(cmd.countSql).to.equal(undefined);
@@ -558,7 +562,7 @@ describe('fluent sql tests', () => {
         it('should handle a where clause with a literal with values', () => {
             const lit = new SqlColumn({Literal:'SELECT business_id FROM business_dba WHERE dba_name like :foo'}).using({foo:'%foo%'});
 
-            const query =new SqlQuery()
+            const query = new SqlQuery()
                 .select(business.id,business.businessName).from(business)
                 .where(business.id.eq(lit));
             const cmd = query.genSql();
@@ -566,7 +570,7 @@ describe('fluent sql tests', () => {
             expect(Object.keys(cmd.values).length).to.equal(1);
             const id = Object.keys(cmd.values)[0];
             expect(cmd.values[id]).to.equal('%foo%');
-            expect(cmd.fetchSql.trim()).to.equal('SELECT\n[business].id as [id],\n[business].business_name as [businessName]\nFROM\nbusiness as [business]\nWHERE [business].id = ('+lit.Literal +')');
+            expect(cmd.fetchSql.trim()).to.equal(`SELECT\n[business].id as [id],\n[business].business_name as [businessName]\nFROM\nbusiness as [business]\nWHERE [business].id = (${lit.Literal})`);
         });
         // TODO HAVING
         // TODO GROUP BY
@@ -586,7 +590,7 @@ describe('fluent sql tests', () => {
 
     describe('SqlQuery paging tests', () => {
         it('Should default to page size of 50, should default to ordering by the first column in the select list', () => {
-            const query =new SqlQuery()
+            const query = new SqlQuery()
                 .select(business.id,business.businessName)
                 .from(business)
                 .page(1);
@@ -598,7 +602,7 @@ describe('fluent sql tests', () => {
             expect(cmd.fetchSql).to.equal(sprintf('SELECT * FROM (\n%s\n) as detail_query WHERE Paging_RowNumber BETWEEN 0 AND 50', baseSql));
         });
         it('Should default to page of 1', () => {
-            const query =new SqlQuery()
+            const query = new SqlQuery()
                 .select(business.id,business.businessName)
                 .from(business)
                 .pageSize(10);
@@ -610,7 +614,7 @@ describe('fluent sql tests', () => {
             expect(cmd.fetchSql).to.equal(sprintf('SELECT * FROM (\n%s\n) as detail_query WHERE Paging_RowNumber BETWEEN 0 AND 10', baseSql));
         });
         it('Should use TOP if top is added', () => {
-            const query =new SqlQuery()
+            const query = new SqlQuery()
                 .select(business.id,business.businessName)
                 .from(business)
                 .top(10);
@@ -622,7 +626,7 @@ describe('fluent sql tests', () => {
         });
         it('Should order by in the query', () => {
             const name = business.businessName.as('name');
-            const query =new SqlQuery()
+            const query = new SqlQuery()
                 .select(business.id, name)
                 .from(business)
                 .orderBy(name)
@@ -637,8 +641,8 @@ describe('fluent sql tests', () => {
     });
 
     describe('SqlQuery order tests', () => {
-        it('should use the order when creating a simple sql statement',function() {
-            const query =new SqlQuery()
+        it('should use the order when creating a simple sql statement', () => {
+            const query = new SqlQuery()
                 .from(business)
                 .select(business.id,business.businessName)
                 .orderBy(business.businessName);
@@ -647,8 +651,8 @@ describe('fluent sql tests', () => {
             expect(Object.keys(cmd.values).length).to.equal(0);
             expect(cmd.fetchSql.trim()).to.equal('SELECT\n[business].id as [id],\n[business].business_name as [businessName]\nFROM\nbusiness as [business]\nORDER BY [business].business_name ASC');
         });
-        it('should allow changing sort direction',function() {
-            const query =new SqlQuery()
+        it('should allow changing sort direction', () => {
+            const query = new SqlQuery()
                 .from(business)
                 .select(business.id,business.businessName)
                 .orderBy(business.businessName.desc());
@@ -657,8 +661,8 @@ describe('fluent sql tests', () => {
             expect(Object.keys(cmd.values).length).to.equal(0);
             expect(cmd.fetchSql.trim()).to.equal('SELECT\n[business].id as [id],\n[business].business_name as [businessName]\nFROM\nbusiness as [business]\nORDER BY [business].business_name DESC');
         });
-        it('should allow a list of columns',function() {
-            const query =new SqlQuery()
+        it('should allow a list of columns', () => {
+            const query = new SqlQuery()
                 .from(business)
                 .select(business.id,business.businessName)
                 .orderBy(business.businessName.desc(), business.id);
@@ -667,8 +671,8 @@ describe('fluent sql tests', () => {
             expect(Object.keys(cmd.values).length).to.equal(0);
             expect(cmd.fetchSql.trim()).to.equal('SELECT\n[business].id as [id],\n[business].business_name as [businessName]\nFROM\nbusiness as [business]\nORDER BY [business].business_name DESC,[business].id ASC');
         });
-        it('should allow an array of columns',function() {
-            const query =new SqlQuery()
+        it('should allow an array of columns', () => {
+            const query = new SqlQuery()
                 .from(business)
                 .select(business.id,business.businessName)
                 .orderBy([business.businessName.desc(), business.id]);
@@ -677,8 +681,8 @@ describe('fluent sql tests', () => {
             expect(Object.keys(cmd.values).length).to.equal(0);
             expect(cmd.fetchSql.trim()).to.equal('SELECT\n[business].id as [id],\n[business].business_name as [businessName]\nFROM\nbusiness as [business]\nORDER BY [business].business_name DESC,[business].id ASC');
         });
-        it('should allow an multiple order bys of columns',function() {
-            const query =new SqlQuery()
+        it('should allow an multiple order bys of columns', () => {
+            const query = new SqlQuery()
                 .from(business)
                 .select(business.id,business.businessName)
                 .orderBy(business.businessName.desc())
@@ -692,16 +696,16 @@ describe('fluent sql tests', () => {
 
     describe('SqlQuery error tests', () => {
         it('should throw if from is not a SqlTable', () => {
-            const query =new SqlQuery();
+            const query = new SqlQuery();
             expect(query.from.bind(query, {})).to.throw({ location: 'SqlQuery::from', message: 'from clause must be a SqlTable'} );
         });
         it('should throw if join is not a SqlJoin', () => {
-            const query =new SqlQuery();
+            const query = new SqlQuery();
             expect(query.join.bind(query, {})).to.throw({ location: 'SqlQuery::join', message: 'clause is not a SqlJoin'} );
         });
         it('should throw exception if it is orderby with something other than SqlOrder or SqlColumn', () => {
-            const query =new SqlQuery();
-            expect(query.orderBy.bind(query, {})).to.throw( { location: "SqlOrder::constructor", message: "did not pass a SqlColumn object"});
+            const query = new SqlQuery();
+            expect(query.orderBy.bind(query, {})).to.throw( { location: 'SqlOrder::constructor', message: 'did not pass a SqlColumn object'});
         });
     });
 
@@ -811,20 +815,20 @@ describe('fluent sql tests', () => {
                 }
                 return sprintf('RIGHT(%s, 4)', literal);
             };
-            const query =new SqlQuery()
+            const query = new SqlQuery()
                 .select(business.star())
                 .from(business);
             const cmd = query.genSql(null, masking);
             expect(cmd.countSql).to.equal(undefined);
             expect(Object.keys(cmd.values).length).to.equal(0);
-            const columns = '';
-            businessColumns.forEach(function(ele, idx){
+            let columns = '';
+            businessColumns.forEach((ele, idx) => {
                 if ( idx !== 0) {
                     columns += ',';
                 }
                 columns += sprintf('\nRIGHT([business].%s, 4) as [%s]', ele.ColumnName, ele.ColumnName.toCamel());
             });
-            expect(cmd.fetchSql.trim()).to.equal('SELECT' + columns + '\nFROM\nbusiness as [business]');
+            expect(cmd.fetchSql.trim()).to.equal(`SELECT${columns}\nFROM\nbusiness as [business]`);
         });
         it('should take a decrypting function and call it for every column', () => {
             const decrypt = function(column, qualified) {
@@ -837,20 +841,20 @@ describe('fluent sql tests', () => {
                     return sprintf('DECRYPT(%s)', column.ColumnName);
                 }
             };
-            const query =new SqlQuery()
+            const query = new SqlQuery()
                 .select(business.star())
                 .from(business);
             const cmd = query.genSql(decrypt);
             expect(cmd.countSql).to.equal(undefined);
             expect(Object.keys(cmd.values).length).to.equal(0);
-            const columns = '';
-            businessColumns.forEach(function(ele, idx){
+            let columns = '';
+            businessColumns.forEach((ele, idx) => {
                 if ( idx !== 0) {
                     columns += ',';
                 }
-                columns += sprintf('\nDECRYPT([business].%s) as [%s]', ele.ColumnName, ele.ColumnName.toCamel());
+                columns += `\nDECRYPT([business].${ele.ColumnName}) as [${ele.ColumnName.toCamel()}]`;
             });
-            expect(cmd.fetchSql.trim()).to.equal('SELECT' + columns + '\nFROM\nbusiness as [business]');
+            expect(cmd.fetchSql.trim()).to.equal(`SELECT${columns}\nFROM\nbusiness as [business]`);
         });
         it('should take a decrypting function and call it for every column setting hasEncrypted to true if any are encrypted', () => {
             const decrypt = function(column, qualified) {
@@ -866,7 +870,7 @@ describe('fluent sql tests', () => {
                     return sprintf('DECRYPT(%s)', column.ColumnName);
                 }
             };
-            const query =new SqlQuery()
+            const query = new SqlQuery()
                 .select(business.star())
                 .from(business);
             const cmd = query.genSql(decrypt);
@@ -879,7 +883,7 @@ describe('fluent sql tests', () => {
                 }
                 return null;
             };
-            const query =new SqlQuery()
+            const query = new SqlQuery()
                 .select(business.star())
                 .from(business);
             const cmd = query.genSql(decrypt);
@@ -908,32 +912,32 @@ describe('fluent sql tests', () => {
                 }
                 return sprintf('RIGHT(%s, 4)', literal);
             };
-            const query =new SqlQuery()
+            const query = new SqlQuery()
                 .select(business.star())
                 .from(business);
             const cmd = query.genSql(decrypt, masking);
             expect(cmd.countSql).to.equal(undefined);
             expect(Object.keys(cmd.values).length).to.equal(0);
-            const columns = '';
-            businessColumns.forEach(function(ele, idx){
+            let columns = '';
+            businessColumns.forEach((ele, idx) => {
                 if ( idx !== 0) {
                     columns += ',';
                 }
-                const name;
+                let name;
                 if ( ele.ColumnName === 'id' ) {
-                    name = "\n[business].id as [id]";
+                    name = '\n[business].id as [id]';
                 } else if ( ele.ColumnName === 'tax_id' ) {
-                    name = sprintf('\nRIGHT(DECRYPT([business].%s), 4) as [%s]', ele.ColumnName, ele.ColumnName.toCamel());
+                    name = `\nRIGHT(DECRYPT([business].${ele.ColumnName}), 4) as [${ele.ColumnName.toCamel()}]`;
                 } else {
-                    name = sprintf('\nRIGHT([business].%s, 4) as [%s]', ele.ColumnName, ele.ColumnName.toCamel());
+                    name = `\nRIGHT([business].${ele.ColumnName}, 4) as [${ele.ColumnName.toCamel()}]`;
                 }
                 columns += name;
             });
-            expect(cmd.fetchSql.trim()).to.equal('SELECT' + columns + '\nFROM\nbusiness as [business]');
+            expect(cmd.fetchSql.trim()).to.equal(`SELECT${columns}\nFROM\nbusiness as [business]`);
         });
         describe('SqlQuery applyOrder', () => {
             it('should allow you to apply an order string to the query', () => {
-                const query =new SqlQuery()
+                const query = new SqlQuery()
                     .select(business.star()).from(business);
 
                 const order = 'id, name DESC';
@@ -942,10 +946,10 @@ describe('fluent sql tests', () => {
                 expect(cmd.countSql).to.equal(undefined);
                 expect(Object.keys(cmd.values).length).to.equal(0);
                 const columns = getBusinessCols();
-                expect(cmd.fetchSql.trim()).to.equal('SELECT' + columns + '\nFROM\nbusiness as [business]\nORDER BY [business].id ASC,[business].business_name DESC');
+                expect(cmd.fetchSql.trim()).to.equal(`SELECT${columns}\nFROM\nbusiness as [business]\nORDER BY [business].id ASC,[business].business_name DESC`);
             });
             it('should allow you to apply an order string to the query with multiple tables', () => {
-                const query =new SqlQuery()
+                const query = new SqlQuery()
                     .select(business.star()).from(business)
                     .join(business_dba.on(business_dba.businessId).using(business.id));
 
@@ -955,10 +959,10 @@ describe('fluent sql tests', () => {
                 expect(cmd.countSql).to.equal(undefined);
                 expect(Object.keys(cmd.values).length).to.equal(0);
                 const columns = getBusinessCols();
-                expect(cmd.fetchSql.trim()).to.equal('SELECT' + columns + '\nFROM\nbusiness as [business]\nJOIN business_dba as [business_dba] on [business_dba].business_id = [business].id\nORDER BY [business].id ASC,[business].business_name DESC,[business_dba].id ASC');
+                expect(cmd.fetchSql.trim()).to.equal(`SELECT${columns}\nFROM\nbusiness as [business]\nJOIN business_dba as [business_dba] on [business_dba].business_id = [business].id\nORDER BY [business].id ASC,[business].business_name DESC,[business_dba].id ASC`);
             });
             it('should throw an exception if the first argument is not a SqlTable to insert and update', () => {
-                const query =new SqlQuery()
+                const query = new SqlQuery()
                     .select(business.star()).from(business)
                     .join(business_dba.on(business_dba.businessId).using(business.id));
 
@@ -976,16 +980,19 @@ describe('fluent sql tests', () => {
                     {name: 'business_type'},
                     {
                         name: 'business_type_formatted',
-                        Literal: 'REPLACE(COALESCE(business_type, \'Unknown Business\'), \'_\', \' \')'
+                        Literal: 'REPLACE(COALESCE(business_type, \'Unknown Business\'), \'_\', \' \')',
                     },
-                    {name: 'id'}
+                    {name: 'id'},
                 ];
-                arr.forEach(function (a) {
-                    a.Alias = a.name.toCamel();
+                arr.forEach((a) => {
+                    a.Alias = a.name.toCamel(); // eslint-disable-line no-param-reassign
                 });
                 return arr;
             }
-            const table =new SqlTable({TableName: 'document_templates', Columns: legalColumns()});
+            const table = new SqlTable({
+                TableName: 'document_templates',
+                Columns: legalColumns(),
+            });
             expect(table.Columns.length).to.equal(3);
             expect(table.businessType.ColumnName).to.equal('business_type');
             expect(table.businessTypeFormatted.Literal).to.equal('REPLACE(COALESCE(business_type, \'Unknown Business\'), \'_\', \' \')');

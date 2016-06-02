@@ -21,7 +21,8 @@ if (!String.prototype.sqlEscape) {
                 query = sqlQuery;
             }
             return query.sqlEscape(this, level);
-        }
+        };
         String.prototype.sqlEscape = sqlEscape;
     })();
 }
+

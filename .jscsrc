@@ -1,0 +1,35 @@
+{
+  "preset": "google",
+
+  "fileExtensions": [".js", ".jsx"],
+
+  "disallowArrayDestructuringReturn": true,
+  "disallowImplicitTypeConversion": ["string"],
+  "disallowKeywords": ["with"],
+  "disallowMultipleVarDecl": true,
+  "disallowPaddingNewlinesInBlocks": true,
+  "disallowSpacesInsideArrayBrackets": null,
+  "disallowSpacesInsideObjectBrackets": null,
+  "disallowSpacesInsideParentheses": { "only": [ "{", "}", "\"" ] },
+  "maximumLineLength": 120,
+  "requireArrayDestructuring": true,
+  "requireArrowFunctions": true,
+  "requireCamelCaseOrUpperCaseIdentifiers": true,
+  "requireCapitalizedConstructors": true,
+  "requireCurlyBraces": true,
+  "requireDotNotation": {"allExcept": ["keywords"]},
+  "requireObjectDestructuring": true,
+  "requireParenthesesAroundIIFE": true,
+  "requireSemicolons": true,
+  "requireSpaceAfterBinaryOperators": true,
+  "requireSpaceBeforeBinaryOperators": true,
+  "requireSpaceBeforeBlockStatements": true,
+  "safeContextKeyword": "that",
+  "validateIndentation": 4,
+  "validateQuoteMarks": {"mark": "'", "escape": true, "ignoreJSX": true},
+
+  "excludeFiles": [
+    "dist/**",
+    "node_modules/**"
+  ]
+}

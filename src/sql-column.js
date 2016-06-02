@@ -1,10 +1,9 @@
 import './string.js';
-import sliced from 'sliced';
-import util from 'util';
 
 import SqlOrder from './sql-order';
 import SqlTable from './sql-table';
 import SqlWhere from './sql-where';
+import { processArgs } from './helpers';
 
 export default  class SqlColumn {
     constructor(sqlObject, columnName, literal) {
@@ -139,16 +138,7 @@ export default  class SqlColumn {
     }
     in (...args) {
         const values = [];
-        sliced(...args).reduce( (cur, next) => {
-            if (util.isArray(next)) {
-                next.forEach( (c) => {
-                    cur.push(c);
-                });
-            } else {
-                cur.push(next);
-            }
-            return cur;
-        }, values);
+        processArgs((v) => { values.push(v) }, ...args); // eslint-disable-line brace-style
         return new SqlWhere({Column: this, Op: 'in', Value: values});
     }
     between (val1, val2) {

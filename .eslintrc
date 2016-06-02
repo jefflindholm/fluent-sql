@@ -41,7 +41,7 @@
     "prefer-rest-params": 1,
     "prefer-template": 2,
     "quote-props": [2, "as-needed"],
-    "quotes": [2, "single"],
+    "quotes": [2, "single", {"avoidEscape": true}],
     "radix": [2, "always"],
     "space-before-blocks": 2,
     "space-infix-ops": 2,

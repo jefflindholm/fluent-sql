@@ -8,7 +8,7 @@
   },
   "scripts": {
     "commit": "git-cz",
-    "prebuild": "rm -rf dist && mkdir dist",
+    "prebuild": "shx rm -rf dist && mkdir dist",
     "build": "babel --presets es2015,stage-0 -d dist/ src/",
     "prepublish": "npm run build",
     "test": "./node_modules/.bin/mocha --require babel-core/register --reporter spec -w",
@@ -42,6 +42,7 @@
     "istanbul": "^0.4.3",
     "mocha": "^2.4.5",
     "semantic-release": "^4.3.5",
+    "shelljs": "^0.7.0",
     "webpack": "^1.13.0"
   },
   "repository": {

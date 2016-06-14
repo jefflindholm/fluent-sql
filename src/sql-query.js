@@ -291,9 +291,16 @@ export default  class SqlQuery {
                         }
                     }
                 }
-                if ( c.Grouped ) {
+                if (c.Grouped) {
                     groupBy.push(`(${c.Literal})`);
                 }
+            } else if (c.Aggregate) {
+                let literal = decryptFunction ? decryptFunction(c, true) : null;
+                hasEncrypted = literal !== null;
+                literal = literal || c.qualifiedName(this);
+                columns += `${(idx > 0 ? ',' : '')}\n${c.Aggregate.operation}(${literal}) as ${c.Alias.sqlEscape(this, 'column-alias')}`;
+                groupBy.push(c.Aggregate.groupBy.qualifiedName(this));
+
             } else {
                 let literal = decryptFunction ? decryptFunction(c, true) : null;
                 hasEncrypted = literal !== null;

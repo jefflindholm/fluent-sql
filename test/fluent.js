@@ -19,6 +19,8 @@ describe('fluent sql tests', () => {
     const businessColumns = [{ColumnName: 'id'}, {ColumnName: 'business_name'}, {ColumnName: 'tax_id'}];
     const business = new SqlTable({TableName: 'business', columns: businessColumns});
     const business_dba = new SqlTable('business_dba', [{ColumnName: 'id'}, {ColumnName: 'business_id'}, {ColumnName: 'dba'}]);
+    const financeColumns = [{name: 'id'}, {name: 'business_id'}, {name: 'balance'}, {name: 'finance_type'}];
+    const finance = new SqlTable({name: 'finance', columns: financeColumns});
 
     function getBusinessCols() {
         let columns = '';
@@ -332,9 +334,83 @@ describe('fluent sql tests', () => {
             expect(Object.keys(cmd.values).length).to.equal(0);
             expect(cmd.fetchSql.trim()).to.equal('SELECT DISTINCT\n[business].business_name as [businessName]\nFROM\nbusiness as [business]');
         });
+
     });
 
     describe('SqlQuery Group By clause tests', () => {
+        it('should allow you to aggregate selected columns with group by', () => {
+            const aggregates = [
+                'AVG',
+                'CHECKSUM',
+                'COUNT',
+                'COUNT_BIG',
+                'GROUPING',
+                'GROUPING_ID',
+                'MAX',
+                'MIN',
+                'SUM',
+                'STDEV',
+                'STDEVP',
+                'VAR',
+                'VARP',
+                'SPECIAL'
+            ];
+            for(let i = 0; i < aggregates.length; i++) {
+                let query = new SqlQuery().from(finance);
+                let aggregate = aggregates[i];
+                switch(aggregates[i]) {
+                    case 'AVG':
+                        query = query.select(finance.balance.avg().on(finance.businessId));
+                        break;
+                    case 'CHECKSUM':
+                        aggregate = 'CHECKSUM_AGG';
+                        query = query.select(finance.balance.checksum().on(finance.businessId));
+                        break;
+                    case 'COUNT':
+                        query = query.select(finance.balance.count().on(finance.businessId));
+                        break;
+                    case 'COUNT_BIG':
+                        query = query.select(finance.balance.countBig().on(finance.businessId));
+                        break;
+                    case 'GROUPING':
+                        query = query.select(finance.balance.grouping().on(finance.businessId));
+                        break;
+                    case 'GROUPING_ID':
+                        query = query.select(finance.balance.groupingId().on(finance.businessId));
+                        break;
+                    case 'MAX':
+                        query = query.select(finance.balance.max().on(finance.businessId));
+                        break;
+                    case 'MIN':
+                        query = query.select(finance.balance.min().on(finance.businessId));
+                        break;
+                    case 'SUM':
+                        query = query.select(finance.balance.sum().on(finance.businessId));
+                        break;
+                    case 'STDEV':
+                        query = query.select(finance.balance.stdev().on(finance.businessId));
+                        break;
+                    case 'STDEVP':
+                        query = query.select(finance.balance.stdevp().on(finance.businessId));
+                        break;
+                    case 'VARP':
+                        query = query.select(finance.balance.varp().by(finance.businessId));
+                        break;
+                    case 'VAR':
+                    case 'SPECIAL':
+                        query = query.select(finance.balance.aggregate(aggregates[i]).by(finance.businessId));
+                        break;
+                }
+
+                const cmd = query.genSql();
+                const expected = 'SELECT' +
+                    `\n${aggregate}([finance].balance) as [balance_${aggregate.toLowerCase()}]` +
+                    '\nFROM' +
+                    '\nfinance as [finance]' +
+                    '\nGROUP BY [finance].business_id';
+                expect(expected).to.equal(cmd.fetchSql);
+            }
+        });
         it('should allow you to group by the selected columns', () => {
             let query = new SqlQuery()
                 .select(business.taxId.groupBy())

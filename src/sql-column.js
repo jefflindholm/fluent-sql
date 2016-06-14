@@ -5,6 +5,21 @@ import SqlTable from './sql-table';
 import SqlWhere from './sql-where';
 import { processArgs } from './helpers';
 
+class SqlAggregate {
+    constructor(table, column, operation) {
+        this.table = table;
+        this.column = column;
+        this.operation = operation;
+        this.column.Alias = `${this.column.Alias || this.column.ColumnName}_${operation.toLowerCase()}`;
+    }
+    on(sqlColumn) {
+        this.groupBy = sqlColumn;
+        return this.column;
+    }
+    by(sqlColumn) {
+        return this.on(sqlColumn);
+    }
+}
 export default  class SqlColumn {
     constructor(sqlObject, columnName, literal) {
         if (!new.target) {
@@ -17,6 +32,7 @@ export default  class SqlColumn {
             this.Alias = sqlObject.Alias;
             this.Not = sqlObject.Not;
             this.Values = sqlObject.Values;
+            this.Aggregate = sqlObject.Aggregate;
             this._grouped = sqlObject._grouped;
         } else if (sqlObject != null && sqlObject.Literal) {
             this.Literal = sqlObject.Literal;
@@ -29,6 +45,50 @@ export default  class SqlColumn {
             this.Literal = literal;
             this.Alias = columnName ? columnName.toCamel() : undefined;
         }
+    }
+    // aggregate functions
+    aggregate(op) {
+        const column = new SqlColumn(this);
+        column.Aggregate = new SqlAggregate(column.table, column, op);
+        return column.Aggregate;
+    }
+    avg() {
+        return this.aggregate('AVG');
+    }
+
+    checksum() {
+        return this.aggregate('CHECKSUM_AGG');
+    }
+    count() {
+        return this.aggregate('COUNT');
+    }
+    countBig() {
+        return this.aggregate('COUNT_BIG');
+    }
+    grouping() {
+        return this.aggregate('GROUPING');
+    }
+    groupingId() {
+        return this.aggregate('GROUPING_ID');
+    }
+    max() {
+        return this.aggregate('MAX');
+    }
+    min() {
+        return this.aggregate('MIN');
+    }
+    sum() {
+        return this.aggregate('SUM');
+    }
+    stdev() {
+        return this.aggregate('STDEV');
+    }
+    stdevp() {
+        return this.aggregate('STDEVP');
+    }
+    // VAR
+    varp() {
+        return this.aggregate('VARP');
     }
 
     qualifiedName(sqlQuery) {

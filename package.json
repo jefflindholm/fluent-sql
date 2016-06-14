@@ -43,6 +43,7 @@
     "mocha": "^2.4.5",
     "semantic-release": "^4.3.5",
     "shelljs": "^0.7.0",
+    "shx": "^0.1.2",
     "webpack": "^1.13.0"
   },
   "repository": {

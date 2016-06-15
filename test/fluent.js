@@ -353,12 +353,12 @@ describe('fluent sql tests', () => {
                 'STDEVP',
                 'VAR',
                 'VARP',
-                'SPECIAL'
+                'SPECIAL',
             ];
-            for(let i = 0; i < aggregates.length; i++) {
+            for (let i = 0; i < aggregates.length; i++) {
                 let query = new SqlQuery().from(finance);
                 let aggregate = aggregates[i];
-                switch(aggregates[i]) {
+                switch (aggregates[i]) {
                     case 'AVG':
                         query = query.select(finance.balance.avg().on(finance.businessId));
                         break;
@@ -1048,6 +1048,29 @@ describe('fluent sql tests', () => {
             });
         });
     });
+
+    describe('SqlQuery options', () => {
+        it('should allow you to override the namedValueMarker for variables', () => {
+            const columns = getBusinessCols();
+            const query = new SqlQuery({namedValueMarker: '@'})
+                .select(business.star())
+                .from(business)
+                .where(business.id.eq('12345'));
+            const cmd = query.genSql();
+            const expected = `SELECT${columns}\nFROM\nbusiness as [business]\nWHERE [business].id = (@id0)`;
+            expect(cmd.fetchSql.trim()).to.equal(expected);
+        })
+        it('should allow you to turn off namedValues for variables', () => {
+            const columns = getBusinessCols();
+            const query = new SqlQuery({namedValues: false})
+                .select(business.star())
+                .from(business)
+                .where(business.id.eq('12345'));
+            const cmd = query.genSql();
+            const expected = `SELECT${columns}\nFROM\nbusiness as [business]\nWHERE [business].id = ?`;
+            expect(cmd.fetchSql.trim()).to.equal(expected);
+        })
+    })
 
     describe('SqlTable tests', () => {
         it('should construct correctly from a name and array of columns', () => {

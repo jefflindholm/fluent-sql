@@ -17,6 +17,9 @@ import { processArgs } from './helpers';
  *                      namedValues - boolean, if false will use ? for the values and just
  *                                      return an array of values
  *                                  - default true
+ *                      namedValueMarker - character, will use this with named values in the
+ *                                      generated SQL (example: where foo = (:value0))
+ *                                  - default is ':'
  */
 export default  class SqlQuery {
     constructor (options) {
@@ -29,6 +32,7 @@ export default  class SqlQuery {
             sqlEndChar: ']',
             escapeLevel: ['table-alias', 'column-alias'],
             namedValues: true,
+            namedValueMarker: ':',
         };
 
         if (options instanceof SqlQuery) {
@@ -86,7 +90,7 @@ export default  class SqlQuery {
                                 piece += ' ? ';
                             } else {
                                 const varName = where.Column.ColumnName + this.variableCount++;
-                                piece += ` (:${varName})`;
+                                piece += ` (${this.options.namedValueMarker}${varName})`;
                                 data = {};
                                 data[varName] = where.Value;
                             }

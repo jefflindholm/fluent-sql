@@ -3,6 +3,5 @@ node_modules/
 coverage
 coverage.html
 code/
-dist/
 *.map
 *-compiled.js

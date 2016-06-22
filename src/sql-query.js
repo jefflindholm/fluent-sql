@@ -7,11 +7,21 @@ import SqlTable from './sql-table';
 //import SqlWhere from './sql-where';
 import { processArgs } from './helpers';
 
+let defaultOptions = {
+    sqlStartChar: '[',
+    sqlEndChar: ']',
+    escapeLevel: ['table-alias', 'column-alias'],
+    namedValues: true,
+    namedValueMarker: ':',
+};
+export function setDefaultOptions(options) {
+    defaultOptions = Object.assign({}, defaultOptions, options);
+}
 /*
  * @param {options} - either another SqlQuery object to copy options from
  *                      or an object of options
  *                      sqlStartChar - character used to escape names (default is '[')
- *                      sqlEndChar - charater used to end escaped names (default is ']')
+ *                      sqlEndChar - character used to end escaped names (default is ']')
  *                      escapeLevel - array of zero or more ('table-alias', 'column-alias')
  *                                  - default is ['table-alias', 'column-alias']
  *                      namedValues - boolean, if false will use ? for the values and just
@@ -27,22 +37,10 @@ export default  class SqlQuery {
             return new SqlQuery(options);
         }
 
-        this.options = {
-            sqlStartChar: '[',
-            sqlEndChar: ']',
-            escapeLevel: ['table-alias', 'column-alias'],
-            namedValues: true,
-            namedValueMarker: ':',
-        };
-
         if (options instanceof SqlQuery) {
             this.options = options.options;
-        }
-
-        if (options) for (const attr in options) {
-            if (options.hasOwnProperty(attr)) {
-                this.options[attr] = options[attr];
-            }
+        } else  {
+            this.options = Object.assign({}, defaultOptions, options);
         }
 
         this.Columns = [];

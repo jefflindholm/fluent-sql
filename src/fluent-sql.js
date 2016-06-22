@@ -9,6 +9,7 @@ export { default as  SqlOrder } from './sql-order';
 export { default as  SqlTable } from './sql-table';
 export { default as  SqlWhere } from './sql-where';
 export { default as  SqlQuery } from './sql-query';
+export { setDefaultOptions } from './sql-query';
 
 if (!String.prototype.sqlEscape) {
     (function () {
@@ -25,4 +26,3 @@ if (!String.prototype.sqlEscape) {
         String.prototype.sqlEscape = sqlEscape;
     })();
 }
-

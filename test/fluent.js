@@ -9,6 +9,7 @@ import {SqlWhere} from '../src/fluent-sql.js';
 import {SqlOrder} from '../src/fluent-sql.js';
 import {SqlJoin} from '../src/fluent-sql.js';
 import {SqlBuilder} from '../src/fluent-sql.js';
+import {setDefaultOptions} from '../src/fluent-sql.js';
 
 const expect = require('chai').expect;
 const sprintf = require('sprintf-js').sprintf;
@@ -33,6 +34,19 @@ describe('fluent sql tests', () => {
         });
         return columns;
     }
+    describe('default tests', () => {
+        it('should override all the settings for default options', () => {
+            const oldOptions = (new SqlQuery()).options;
+            const newOptions = Object.assign({}, oldOptions, {
+                sqlStartChar: '`',
+                sqlEndChar: '`',
+            });
+            setDefaultOptions(newOptions);
+            expect(newOptions).to.deep.equal((new SqlQuery()).options);
+            setDefaultOptions(oldOptions);
+        });
+    });
+
     describe('sqlescape test', () => {
         it('should return [name] for a string', () => {
             expect('name'.sqlEscape()).to.equal('[name]');

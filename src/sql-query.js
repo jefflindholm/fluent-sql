@@ -17,6 +17,9 @@ let defaultOptions = {
 export function setDefaultOptions(options) {
     defaultOptions = Object.assign({}, defaultOptions, options);
 }
+export function getDefaultOptions() {
+    return defaultOptions;
+}
 /*
  * @param {options} - either another SqlQuery object to copy options from
  *                      or an object of options

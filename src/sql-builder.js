@@ -1,6 +1,7 @@
 import './string.js';
 
 import SqlTable from './sql-table';
+import {getDefaultOptions} from './sql-query';
 
 export default class SqlBuilder {
     /*
@@ -35,6 +36,7 @@ export default class SqlBuilder {
         if (!(sqlTable instanceof SqlTable)) {
             throw {location: 'SqlBuilder::update', message: 'sqlTable is not an instance of SqlTable'};
         }
+        const options = getDefaultOptions();
         let item = 1;
         const data = {id: details.id};
         let update = '';
@@ -49,7 +51,7 @@ export default class SqlBuilder {
                 variable = attr + item.toString();
                 data[variable] = details[attr];
                 encrypted = (encryptFunction ? encryptFunction(column, variable) : null);
-                variable = encrypted || `:${variable}`;
+                variable = encrypted || `${options.namedValueMarker}${variable}`;
                 if (encrypted != null) {
                     hasEncryptedValues = true;
                 }
@@ -58,7 +60,7 @@ export default class SqlBuilder {
             }
         }
         return {
-            sql: `UPDATE ${sqlTable.getTable()} SET ${update} WHERE id = :id`,
+            sql: `UPDATE ${sqlTable.getTable()} SET ${update} WHERE id = ${options.namedValueMarker}id`,
             values: data,
             hasEncrypted: hasEncryptedValues,
         };
@@ -67,6 +69,7 @@ export default class SqlBuilder {
         if (!(sqlTable instanceof SqlTable)) {
             throw {location: 'SqlBuilder::insert', message: 'sqlTable is not an instance of SqlTable'};
         }
+        const options = getDefaultOptions();
         let item = 1;
         const data = {};
         let variable;
@@ -82,7 +85,7 @@ export default class SqlBuilder {
                 data[variable] = details[attr];
                 columnList += (item === 1 ? '' : ',') + attr.toSnakeCase();
                 encrypted = (encryptFunction ? encryptFunction(column, variable) : null);
-                variable = encrypted || `:${variable}`;
+                variable = encrypted || `${options.namedValueMarker}${variable}`;
                 if (encrypted != null) {
                     hasEncryptedValues = true;
                 }
@@ -92,7 +95,7 @@ export default class SqlBuilder {
         }
         if (newId) {
             columnList += ', id';
-            variableList += ', :id';
+            variableList += `, ${options.namedValueMarker}id`;
             data.id = newId;
         }
 

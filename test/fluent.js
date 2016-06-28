@@ -5,8 +5,8 @@ import '../src/string';
 import {SqlQuery} from '../src/fluent-sql.js';
 import {SqlTable} from '../src/fluent-sql.js';
 import {SqlColumn} from '../src/fluent-sql.js';
-import {SqlWhere} from '../src/fluent-sql.js';
-import {SqlOrder} from '../src/fluent-sql.js';
+//import {SqlWhere} from '../src/fluent-sql.js';
+//import {SqlOrder} from '../src/fluent-sql.js';
 import {SqlJoin} from '../src/fluent-sql.js';
 import {SqlBuilder} from '../src/fluent-sql.js';
 import {setDefaultOptions, getDefaultOptions} from '../src/fluent-sql.js';
@@ -19,21 +19,7 @@ describe('fluent sql tests', () => {
 
     const businessColumns = [{ColumnName: 'id'}, {ColumnName: 'business_name'}, {ColumnName: 'tax_id'}];
     const business = new SqlTable({TableName: 'business', columns: businessColumns});
-    const business_dba = new SqlTable('business_dba', [{ColumnName: 'id'}, {ColumnName: 'business_id'}, {ColumnName: 'dba'}]);
-    const financeColumns = [{name: 'id'}, {name: 'business_id'}, {name: 'balance'}, {name: 'finance_type'}];
-    const finance = new SqlTable({name: 'finance', columns: financeColumns});
 
-    function getBusinessCols() {
-        let columns = '';
-        businessColumns.forEach((ele, idx) => {
-            if ( idx !== 0) {
-                columns += ',';
-            }
-            //columns += '\n[business].'+ele.ColumnName+' as ['+ele.ColumnName.toCamel() +']';
-            columns += `\n[business].${ele.ColumnName} as [${ele.ColumnName.toCamel()}]`;
-        });
-        return columns;
-    }
     describe('default tests', () => {
         it('should override all the settings for default options', () => {
             const oldOptions = Object.assign({}, getDefaultOptions());
@@ -85,10 +71,11 @@ describe('fluent sql tests', () => {
         it('should change the : to $ with overrides on insert', () => {
             const oldOptions = getDefaultOptions();
             setDefaultOptions({
-                namedValueMarker: '$'
+                namedValueMarker: '$',
             });
             const data = { id: 1234, businessName: 'some guy\'s cars'};
             const cmd = SqlBuilder.insert(business, data, 4000);
+            setDefaultOptions(oldOptions);
 
             expect(Object.keys(cmd.values).length).to.equal(2);
             const name = Object.keys(cmd.values)[0];
@@ -96,7 +83,6 @@ describe('fluent sql tests', () => {
             expect(cmd.values[name]).to.equal('some guy\'s cars');
             expect(cmd.values[id]).to.equal(4000);
             expect(cmd.sql).to.equal(sprintf('INSERT INTO business (business_name, id) VALUES ($%s, $%s)', name, id));
-            setDefaultOptions(oldOptions);
         });
         it('should build an insert statement given a table and an object ignoring columns not in the table', () => {
             const data = { id: 1234, businessName: 'some guy\'s cars', frank: 123};
@@ -123,10 +109,11 @@ describe('fluent sql tests', () => {
         it('should change the : to $ with overrides on update', () => {
             const oldOptions = getDefaultOptions();
             setDefaultOptions({
-                namedValueMarker: '$'
+                namedValueMarker: '$',
             });
             const data = { id: 1234, businessName: 'some guy\'s cars'};
             const cmd = SqlBuilder.update(business, data);
+            setDefaultOptions(oldOptions);
 
             expect(Object.keys(cmd.values).length).to.equal(2);
             const id = Object.keys(cmd.values)[0];
@@ -134,7 +121,29 @@ describe('fluent sql tests', () => {
             expect(cmd.values[name]).to.equal('some guy\'s cars');
             expect(cmd.values[id]).to.equal(1234);
             expect(cmd.sql).to.equal(sprintf('UPDATE business SET business_name = $%s WHERE id = $%s', name, id));
+        });
+        it('should build an delete statement given a table and an object', () => {
+            const data = { id: 1234, businessName: 'some guy\'s cars'};
+            const cmd = SqlBuilder.delete(business, data);
+
+            expect(Object.keys(cmd.values).length).to.equal(1);
+            const id = Object.keys(cmd.values)[0];
+            expect(cmd.values[id]).to.equal(1234);
+            expect(cmd.sql).to.equal(sprintf('DELETE FROM business WHERE id = :%s', id));
+        });
+        it('should change the : to $ with overrides on delete', () => {
+            const oldOptions = getDefaultOptions();
+            setDefaultOptions({
+                namedValueMarker: '$',
+            });
+            const data = { id: 1234, businessName: 'some guy\'s cars'};
+            const cmd = SqlBuilder.delete(business, data);
             setDefaultOptions(oldOptions);
+
+            expect(Object.keys(cmd.values).length).to.equal(1);
+            const id = Object.keys(cmd.values)[0];
+            expect(cmd.values[id]).to.equal(1234);
+            expect(cmd.sql).to.equal(sprintf('DELETE FROM business WHERE id = $%s', id));
         });
 
         it('should build an update statement given a table and an object, ignoring extra columns', () => {

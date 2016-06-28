@@ -1,8 +1,4 @@
 import './string.js';
-//import sliced from 'sliced';
-//import util from 'util';
-//import {sprintf} from 'sprintf-js';
-
 import SqlColumn from './sql-column';
 import SqlJoin from './sql-join';
 import SqlQuery from './sql-query';

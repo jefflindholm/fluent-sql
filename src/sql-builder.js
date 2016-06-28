@@ -3,6 +3,48 @@ import './string.js';
 import SqlTable from './sql-table';
 import {getDefaultOptions} from './sql-query';
 
+function updateDelete (operation, sqlTable, details, encryptFunction) {
+    if (!(sqlTable instanceof SqlTable)) {
+        throw {location: 'SqlBuilder::update', message: 'sqlTable is not an instance of SqlTable'};
+    }
+    const options = getDefaultOptions();
+    const data = {id: details.id};
+    let hasEncryptedValues = false;
+    let sql;
+    if ( operation === 'update' ) {
+        let item = 1;
+        let update = '';
+        let attr;
+        let variable;
+        let encrypted;
+        let column;
+        for (attr in details) {
+            if (details.hasOwnProperty(attr) && attr !== 'id' && sqlTable.hasOwnProperty(attr)) {
+                column = sqlTable[attr];
+                variable = attr + item.toString();
+                data[variable] = details[attr];
+                encrypted = (encryptFunction ? encryptFunction(column, variable) : null);
+                variable = encrypted || `${options.namedValueMarker}${variable}`;
+                if (encrypted != null) {
+                    hasEncryptedValues = true;
+                }
+                update += `${(item === 1 ? '' : ',')}${attr.toSnakeCase()} = ${variable}`;
+                item += 1;
+            }
+        }
+        sql = `UPDATE ${sqlTable.getTable()} SET ${update} WHERE id = ${options.namedValueMarker}id`;
+    } else if ( operation === 'delete' ) {
+        sql = `DELETE FROM ${sqlTable.getTable()} WHERE id = ${options.namedValueMarker}id`;
+    } else {
+        throw new {msg: `Invalid operation ${operation}`};
+    }
+    return {
+        sql,
+        values: data,
+        hasEncrypted: hasEncryptedValues,
+    };
+};
+
 export default class SqlBuilder {
     /*
      * @depreicated
@@ -33,38 +75,11 @@ export default class SqlBuilder {
      * @return { sql, values, hasEncrypted }
      */
     static update (sqlTable, details, encryptFunction) {
-        if (!(sqlTable instanceof SqlTable)) {
-            throw {location: 'SqlBuilder::update', message: 'sqlTable is not an instance of SqlTable'};
-        }
-        const options = getDefaultOptions();
-        let item = 1;
-        const data = {id: details.id};
-        let update = '';
-        let attr;
-        let variable;
-        let encrypted;
-        let column;
-        let hasEncryptedValues = false;
-        for (attr in details) {
-            if (details.hasOwnProperty(attr) && attr !== 'id' && sqlTable.hasOwnProperty(attr)) {
-                column = sqlTable[attr];
-                variable = attr + item.toString();
-                data[variable] = details[attr];
-                encrypted = (encryptFunction ? encryptFunction(column, variable) : null);
-                variable = encrypted || `${options.namedValueMarker}${variable}`;
-                if (encrypted != null) {
-                    hasEncryptedValues = true;
-                }
-                update += `${(item === 1 ? '' : ',')}${attr.toSnakeCase()} = ${variable}`;
-                item += 1;
-            }
-        }
-        return {
-            sql: `UPDATE ${sqlTable.getTable()} SET ${update} WHERE id = ${options.namedValueMarker}id`,
-            values: data,
-            hasEncrypted: hasEncryptedValues,
-        };
-    };
+        return updateDelete('update', sqlTable, details, encryptFunction);
+    }
+    static delete (sqlTable, details, encryptFunction) {
+        return updateDelete('delete', sqlTable, details, encryptFunction);
+    }
     static insert (sqlTable, details, newId, encryptFunction) {
         if (!(sqlTable instanceof SqlTable)) {
             throw {location: 'SqlBuilder::insert', message: 'sqlTable is not an instance of SqlTable'};

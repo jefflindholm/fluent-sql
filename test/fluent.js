@@ -150,6 +150,21 @@ describe('fluent sql tests', () => {
             expect(cmd.sql).to.equal(sprintf('DELETE FROM business WHERE business_name = $%s AND id = $%s', name, id));
         });
 
+        it('should be able to delete with just the id', () => {
+            const oldOptions = getDefaultOptions();
+            setDefaultOptions({
+                namedValueMarker: '$',
+            });
+            const data = { id: 1234};
+            const cmd = SqlBuilder.delete(business, data);
+            setDefaultOptions(oldOptions);
+
+            expect(Object.keys(cmd.values).length).to.equal(1);
+            const id = Object.keys(cmd.values)[0];
+            expect(cmd.values[id]).to.equal(1234);
+            expect(cmd.sql).to.equal(sprintf('DELETE FROM business WHERE id = $%s', id));
+        });
+
         it('should build an update statement given a table and an object, ignoring extra columns', () => {
             const data = { id: 1234, businessName: 'some guy\'s cars', frank: 123};
             const cmd = SqlBuilder.update(business, data);

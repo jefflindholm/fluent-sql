@@ -36,7 +36,7 @@ function updateDelete (operation, sqlTable, details, encryptFunction) {
         sql = `UPDATE ${sqlTable.getTable()} SET ${columns} WHERE id = ${options.namedValueMarker}id`;
     } else if ( operation === 'delete' ) {
         if ( details.id ) {
-            columns += ` AND id = ${options.namedValueMarker}id`;
+            columns += `${(item === 1 ? '' : sep)}id = ${options.namedValueMarker}id`;
         }
         sql = `DELETE FROM ${sqlTable.getTable()} WHERE ${columns}`;
     } else {

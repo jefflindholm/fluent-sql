@@ -8,33 +8,37 @@ function updateDelete (operation, sqlTable, details, encryptFunction) {
         throw {location: 'SqlBuilder::update', message: 'sqlTable is not an instance of SqlTable'};
     }
     const options = getDefaultOptions();
-    const data = {id: details.id};
+    const data = details.id ? {id: details.id} : {};
+    const sep = operation === 'update' ? ',' : ' AND ';
     let hasEncryptedValues = false;
+    let item = 1;
+    let columns = '';
+    let attr;
+    let variable;
+    let encrypted;
+    let column;
+    for (attr in details) {
+        if (details.hasOwnProperty(attr) && attr !== 'id' && sqlTable.hasOwnProperty(attr)) {
+            column = sqlTable[attr];
+            variable = attr + item.toString();
+            data[variable] = details[attr];
+            encrypted = (encryptFunction ? encryptFunction(column, variable) : null);
+            variable = encrypted || `${options.namedValueMarker}${variable}`;
+            if (encrypted != null) {
+                hasEncryptedValues = true;
+            }
+            columns += `${(item === 1 ? '' : sep)}${attr.toSnakeCase()} = ${variable}`;
+            item += 1;
+        }
+    }
     let sql;
     if ( operation === 'update' ) {
-        let item = 1;
-        let update = '';
-        let attr;
-        let variable;
-        let encrypted;
-        let column;
-        for (attr in details) {
-            if (details.hasOwnProperty(attr) && attr !== 'id' && sqlTable.hasOwnProperty(attr)) {
-                column = sqlTable[attr];
-                variable = attr + item.toString();
-                data[variable] = details[attr];
-                encrypted = (encryptFunction ? encryptFunction(column, variable) : null);
-                variable = encrypted || `${options.namedValueMarker}${variable}`;
-                if (encrypted != null) {
-                    hasEncryptedValues = true;
-                }
-                update += `${(item === 1 ? '' : ',')}${attr.toSnakeCase()} = ${variable}`;
-                item += 1;
-            }
-        }
-        sql = `UPDATE ${sqlTable.getTable()} SET ${update} WHERE id = ${options.namedValueMarker}id`;
+        sql = `UPDATE ${sqlTable.getTable()} SET ${columns} WHERE id = ${options.namedValueMarker}id`;
     } else if ( operation === 'delete' ) {
-        sql = `DELETE FROM ${sqlTable.getTable()} WHERE id = ${options.namedValueMarker}id`;
+        if ( details.id ) {
+            columns += ` AND id = ${options.namedValueMarker}id`;
+        }
+        sql = `DELETE FROM ${sqlTable.getTable()} WHERE ${columns}`;
     } else {
         throw new {msg: `Invalid operation ${operation}`};
     }

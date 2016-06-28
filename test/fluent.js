@@ -126,10 +126,12 @@ describe('fluent sql tests', () => {
             const data = { id: 1234, businessName: 'some guy\'s cars'};
             const cmd = SqlBuilder.delete(business, data);
 
-            expect(Object.keys(cmd.values).length).to.equal(1);
+            expect(Object.keys(cmd.values).length).to.equal(2);
             const id = Object.keys(cmd.values)[0];
+            const name = Object.keys(cmd.values)[1];
+            expect(cmd.values[name]).to.equal('some guy\'s cars');
             expect(cmd.values[id]).to.equal(1234);
-            expect(cmd.sql).to.equal(sprintf('DELETE FROM business WHERE id = :%s', id));
+            expect(cmd.sql).to.equal(sprintf('DELETE FROM business WHERE business_name = :%s AND id = :%s', name, id));
         });
         it('should change the : to $ with overrides on delete', () => {
             const oldOptions = getDefaultOptions();
@@ -140,10 +142,12 @@ describe('fluent sql tests', () => {
             const cmd = SqlBuilder.delete(business, data);
             setDefaultOptions(oldOptions);
 
-            expect(Object.keys(cmd.values).length).to.equal(1);
+            expect(Object.keys(cmd.values).length).to.equal(2);
             const id = Object.keys(cmd.values)[0];
+            const name = Object.keys(cmd.values)[1];
+            expect(cmd.values[name]).to.equal('some guy\'s cars');
             expect(cmd.values[id]).to.equal(1234);
-            expect(cmd.sql).to.equal(sprintf('DELETE FROM business WHERE id = $%s', id));
+            expect(cmd.sql).to.equal(sprintf('DELETE FROM business WHERE business_name = $%s AND id = $%s', name, id));
         });
 
         it('should build an update statement given a table and an object, ignoring extra columns', () => {

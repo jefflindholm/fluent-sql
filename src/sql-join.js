@@ -2,13 +2,13 @@ import './string.js';
 
 import SqlColumn from './sql-column';
 
-export default  class SqlJoin {
+export default class SqlJoin {
     constructor(sqlColumn) {
         if (!new.target) {
             return new SqlJoin(sqlColumn);
         }
         if (!(sqlColumn instanceof SqlColumn)) {
-            throw {location: 'SqlJoin::constructor', message: 'trying to join on something not a SqlColumn'};
+            throw { location: 'SqlJoin::constructor', message: 'trying to join on something not a SqlColumn' }; // eslint-disable-line
         }
         this.From = sqlColumn;
     }
@@ -24,9 +24,9 @@ export default  class SqlJoin {
     set To(v) {
         this._to = v;
     }
-    using (sqlColumn) {
+    using(sqlColumn) {
         if (!(sqlColumn instanceof SqlColumn)) {
-            throw {location: 'SqlJoin::using', message: 'trying to join on something not a SqlColumn'};
+            throw { location: 'SqlJoin::using', message: 'trying to join on something not a SqlColumn' }; //eslint-disable-line
         }
         this.To = sqlColumn;
         return this;

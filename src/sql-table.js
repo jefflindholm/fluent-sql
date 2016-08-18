@@ -3,7 +3,7 @@ import SqlColumn from './sql-column';
 import SqlJoin from './sql-join';
 import SqlQuery from './sql-query';
 
-export default  class SqlTable {
+export default class SqlTable {
     /*
      * @param {} - either another SqlTable, alias
      *             or TableName, array of columns
@@ -14,7 +14,7 @@ export default  class SqlTable {
      *          columns: [{ColumnName: 'id'}, {ColumnName: 'username'}, {ColumnName: 'password'}]
      *      }, 'u');
      */
-    constructor (...args) {
+    constructor(...args) {
         if (!new.target) {
             return new SqlTable(...args);
         }
@@ -42,51 +42,53 @@ export default  class SqlTable {
             }, this);
         }
     }
+    /* eslint-disable brace-style */
     get TableName() { return this._tableName; }
     set TableName(v) { this._tableName = v; }
     get Alias() { return this._alias; }
     set Alias(v) { this._alias = v; }
     get Columns() { return this._columns; }
     set Columns(v) { this._columns = v; }
+    /* eslint-enable */
 
-    getTable () {
+    getTable() {
         return this.TableName;
     }
-    getAlias () {
+    getAlias() {
         return this.Alias || this.TableName;
     }
-    as (alias) {
+    as(alias) {
         const table = new SqlTable(this, alias);
         table.Alias = alias;
         return table;
     }
-    join (joinClause) {
+    join(joinClause) {
         const query = new SqlQuery();
         query.join(joinClause);
         return query;
     }
-    left (joinClause) {
+    left(joinClause) {
         const query = new SqlQuery();
         query.left(joinClause);
         return query;
     }
-    right (joinClause) {
+    right(joinClause) {
         const query = new SqlQuery();
         query.right(joinClause);
         return query;
     }
-    on (sqlColumn) {
+    on(sqlColumn) {
         if (sqlColumn.Table !== this) {
-            throw {location: 'SqlTable::on', message: 'trying to build join on column not from this table'};
+            throw { location: 'SqlTable::on', message: 'trying to build join on column not from this table' }; //eslint-disable-line
         }
         return new SqlJoin(sqlColumn);
     }
-    where (whereClause) {
+    where(whereClause) {
         const query = new SqlQuery();
         query.where(whereClause);
         return query;
     }
-    star () {
+    star() {
         return this;
     }
 }

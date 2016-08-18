@@ -2,7 +2,7 @@ import './string.js';
 
 import SqlColumn from './sql-column';
 
-export default  class SqlOrder {
+export default class SqlOrder {
     constructor(sqlObject, dir) {
         if (!new.target) {
             return new SqlOrder(sqlObject, dir);
@@ -15,7 +15,7 @@ export default  class SqlOrder {
             this.Column = sqlObject;
             this.Direction = dir || 'ASC';
         } else {
-            throw {location: 'SqlOrder::constructor', message: 'did not pass a SqlColumn object'};
+            throw { location: 'SqlOrder::constructor', message: 'did not pass a SqlColumn object' }; // eslint-disable-line
         }
     }
 

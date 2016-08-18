@@ -1,6 +1,6 @@
 import './string.js';
 
-export default  class SqlWhere {
+export default class SqlWhere {
     constructor(details) {
         if (!new.target) {
             return new SqlWhere(details);
@@ -66,7 +66,7 @@ export default  class SqlWhere {
 
     or(whereClause) {
         if (this.type && this.type !== 'or') {
-            throw {location: 'SqlWhere::or', message: 'cannot add \'or\' to \'and\' group'};
+            throw { location: 'SqlWhere::or', message: 'cannot add \'or\' to \'and\' group' };
         }
         this.type = 'or';
         return this.add(whereClause);
@@ -74,7 +74,7 @@ export default  class SqlWhere {
 
     and(whereClause) {
         if (this.type && this.type !== 'and') {
-            throw {location: 'SqlWhere::and', message: 'cannot add \'and\' to \'or\' group'};
+            throw { location: 'SqlWhere::and', message: 'cannot add \'and\' to \'or\' group' };
         }
         this.type = 'and';
         return this.add(whereClause);

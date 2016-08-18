@@ -1,14 +1,14 @@
 import './string.js';
 
 import SqlTable from './sql-table';
-import {getDefaultOptions} from './sql-query';
+import { getDefaultOptions } from './sql-query';
 
-function updateDelete (operation, sqlTable, details, encryptFunction) {
+function updateDelete(operation, sqlTable, details, encryptFunction) {
     if (!(sqlTable instanceof SqlTable)) {
-        throw {location: 'SqlBuilder::update', message: 'sqlTable is not an instance of SqlTable'};
+        throw { location: 'SqlBuilder::update', message: 'sqlTable is not an instance of SqlTable' }; // eslint-disable-line
     }
     const options = getDefaultOptions();
-    const data = details.id ? {id: details.id} : {};
+    const data = details.id ? { id: details.id } : {};
     const sep = operation === 'update' ? ',' : ' AND ';
     let hasEncryptedValues = false;
     let item = 1;
@@ -40,34 +40,34 @@ function updateDelete (operation, sqlTable, details, encryptFunction) {
         }
         sql = `DELETE FROM ${sqlTable.getTable()} WHERE ${columns}`;
     } else {
-        throw new {msg: `Invalid operation ${operation}`};
+        throw new { msg: `Invalid operation ${operation}` }; //eslint-disable-line
     }
     return {
         sql,
         values: data,
         hasEncrypted: hasEncryptedValues,
     };
-};
+}
 
 export default class SqlBuilder {
     /*
      * @depreicated
      */
     constructor() {
-        console.log('SqlBuilder object is deprecated, please use static SqlBuilder methods directly')
+        console.log('SqlBuilder object is deprecated, please use static SqlBuilder methods directly');
     }
     /*
      * @depreicated
      */
     update(sqlTable, details, encryptFunction) {
-        console.log('update from a SqlBuilder object is deprecated, please use static SqlBuilder.update')
+        console.log('update from a SqlBuilder object is deprecated, please use static SqlBuilder.update');
         return SqlBuilder.update(sqlTable, details, encryptFunction);
     }
     /*
      * @depreicated
      */
     insert(sqlTable, details, newId, encryptFunction) {
-        console.log('insert from a SqlBuilder object is deprecated, please use static SqlBuilder.insert')
+        console.log('insert from a SqlBuilder object is deprecated, please use static SqlBuilder.insert');
         return SqlBuilder.insert(sqlTable, details, newId, encryptFunction);
     }
     /*
@@ -78,15 +78,15 @@ export default class SqlBuilder {
      *                              should return null if not encrypted
      * @return { sql, values, hasEncrypted }
      */
-    static update (sqlTable, details, encryptFunction) {
+    static update(sqlTable, details, encryptFunction) {
         return updateDelete('update', sqlTable, details, encryptFunction);
     }
-    static delete (sqlTable, details, encryptFunction) {
+    static delete(sqlTable, details, encryptFunction) {
         return updateDelete('delete', sqlTable, details, encryptFunction);
     }
-    static insert (sqlTable, details, newId, encryptFunction) {
+    static insert(sqlTable, details, newId, encryptFunction) {
         if (!(sqlTable instanceof SqlTable)) {
-            throw {location: 'SqlBuilder::insert', message: 'sqlTable is not an instance of SqlTable'};
+            throw { location: 'SqlBuilder::insert', message: 'sqlTable is not an instance of SqlTable' }; //eslint-disable-line
         }
         const options = getDefaultOptions();
         let item = 1;
@@ -123,5 +123,5 @@ export default class SqlBuilder {
             values: data,
             hasEncrypted: hasEncryptedValues,
         };
-    };
+    }
 }

@@ -4,7 +4,7 @@
     const stringFunctions = {};
 
     stringFunctions.toCamel = function () {
-        return this.replace(/[\-_][a-z]/g,  (m) => {
+        return this.replace(/[\-_][a-z]/g, (m) => {
             return m.toUpperCase().replace(/[\-_]/, '');
         });
     };

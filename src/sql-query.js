@@ -4,7 +4,7 @@ import SqlColumn from './sql-column';
 import SqlJoin from './sql-join';
 import SqlOrder from './sql-order';
 import SqlTable from './sql-table';
-//import SqlWhere from './sql-where';
+// import SqlWhere from './sql-where';
 import { processArgs } from './helpers';
 
 let defaultOptions = {
@@ -34,15 +34,15 @@ export function getDefaultOptions() {
  *                                      generated SQL (example: where foo = (:value0))
  *                                  - default is ':'
  */
-export default  class SqlQuery {
-    constructor (options) {
+export default class SqlQuery {
+    constructor(options) {
         if (!new.target) {
             return new SqlQuery(options);
         }
 
         if (options instanceof SqlQuery) {
             this.options = options.options;
-        } else  {
+        } else {
             this.options = Object.assign({}, defaultOptions, options);
         }
 
@@ -61,7 +61,7 @@ export default  class SqlQuery {
         this.BuildWherePart = (whereArray, values, conjunction) => {
             let sql = '';
             let data;
-            whereArray.forEach(function (where, idx) {
+            whereArray.forEach( (where, idx) => {
                 if (idx !== 0) {
                     sql += `\n${conjunction.toUpperCase()} `;
                 }
@@ -113,7 +113,7 @@ export default  class SqlQuery {
             }, this);
             return sql;
         };
-    };
+    }
     /* eslint-disable brace-style */
     get Columns() { return this._columns; }
     set Columns(v) { this._columns = v; }
@@ -131,9 +131,8 @@ export default  class SqlQuery {
     sqlEscape = (str, level) => {
         if ((level && this.options.escapeLevel.indexOf(level) > -1) || !level) {
             return this.options.sqlStartChar + str + this.options.sqlEndChar;
-        } else {
-            return str;
         }
+        return str;
     };
     page = (page) => {
         this.pageNo = page;
@@ -148,7 +147,9 @@ export default  class SqlQuery {
         return this;
     };
     addColumns = (...args) => {
-        processArgs(v => {this.Columns.push(v)}, ...args); // eslint-disable-line brace-style
+        processArgs(v => {
+            this.Columns.push(v);
+        }, ...args); // eslint-disable-line brace-style
         return this;
     };
     /*
@@ -171,7 +172,7 @@ export default  class SqlQuery {
                 parts = parts[0].split('.');
                 if (parts.length > 1) {
                     col = parts[1].toSnakeCase();
-                    table = new SqlTable({TableName: parts[0].toSnakeCase()});
+                    table = new SqlTable({ TableName: parts[0].toSnakeCase() });
                 } else {
                     col = parts[0];
                     table = defaultSqlTable;
@@ -183,7 +184,7 @@ export default  class SqlQuery {
                     });
                 } else {
                     if (!(defaultSqlTable instanceof SqlTable)) {
-                        throw {
+                        throw { // eslint-disable-line
                             location: 'SqlQuery::applyOrder',
                             message: 'defaultSqlTable is not an instance of SqlTable',
                         };
@@ -201,20 +202,20 @@ export default  class SqlQuery {
                 this.Columns.push(new SqlColumn(c));
             });
         } else {
-            processArgs(a => {this.Columns.push(new SqlColumn(a))}, ...args); // eslint-disable-line brace-style
+            processArgs(a => { this.Columns.push(new SqlColumn(a)); }, ...args); // eslint-disable-line brace-style
         }
         return this;
     };
     from = (sqlTable) => {
         if (!(sqlTable instanceof SqlTable)) {
-            throw {location: 'SqlQuery::from', message: 'from clause must be a SqlTable'};
+            throw { location: 'SqlQuery::from', message: 'from clause must be a SqlTable' }; //eslint-disable-line
         }
         this.From.push(sqlTable);
         return this;
     };
     join = (joinClause) => {
         if (!(joinClause instanceof SqlJoin)) {
-            throw {location: 'SqlQuery::join', message: 'clause is not a SqlJoin'};
+            throw { location: 'SqlQuery::join', message: 'clause is not a SqlJoin' }; // eslint-disable-line
         }
         this.Joins.push(joinClause);
         return this;
@@ -236,7 +237,7 @@ export default  class SqlQuery {
         return this;
     };
     orderBy = (...args) => {
-        processArgs(v => {this.OrderBy.push(new SqlOrder(v))}, ...args); // eslint-disable-line brace-style
+        processArgs(v => { this.OrderBy.push(new SqlOrder(v)); }, ...args); // eslint-disable-line brace-style
         return this;
     };
     distinct = () => {
@@ -271,9 +272,8 @@ export default  class SqlQuery {
      * @return { fetchSql, countSql, values, hasEncrypted }
      */
     genSql = (decryptFunction, maskFunction) => {
-
         if (this.From && this.From.length < 1) {
-            throw {location: 'toSql', message: 'No FROM in query'};
+            throw { location: 'toSql', message: 'No FROM in query' }; // eslint-disable-line
         }
 
         const sql = {};
@@ -305,7 +305,6 @@ export default  class SqlQuery {
                 literal = literal || c.qualifiedName(this);
                 columns += `${(idx > 0 ? ',' : '')}\n${c.Aggregate.operation}(${literal}) as ${c.Alias.sqlEscape(this, 'column-alias')}`;
                 groupBy.push(c.Aggregate.groupBy.qualifiedName(this));
-
             } else {
                 let literal = decryptFunction ? decryptFunction(c, true) : null;
                 hasEncrypted = literal !== null;

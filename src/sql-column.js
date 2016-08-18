@@ -20,7 +20,7 @@ class SqlAggregate {
         return this.on(sqlColumn);
     }
 }
-export default  class SqlColumn {
+export default class SqlColumn {
     constructor(sqlObject, columnName, literal) {
         if (!new.target) {
             return new SqlColumn(sqlObject, columnName, literal);
@@ -38,7 +38,7 @@ export default  class SqlColumn {
             this.Literal = sqlObject.Literal;
             this.Alias = sqlObject.Alias;
         } else if (sqlObject != null && !(sqlObject instanceof SqlTable)) {
-            throw {location: 'SqlColumn::constructor', message: 'must construct using a SqlTable'};
+            throw { location: 'SqlColumn::constructor', message: 'must construct using a SqlTable' }; // eslint-disable-line no-throw-literal
         } else {
             this.Table = sqlObject;
             this.ColumnName = columnName;
@@ -151,79 +151,79 @@ export default  class SqlColumn {
     set Grouped(v) {
         this._grouped = v;
     }
-    eq (val) {
-        return new SqlWhere({Column: this, Op: '=', Value: val});
-    };
-    ne (val) {
-        return new SqlWhere({Column: this, Op: '<>', Value: val});
+    eq(val) {
+        return new SqlWhere({ Column: this, Op: '=', Value: val });
     }
-    gt (val) {
-        return new SqlWhere({Column: this, Op: '>', Value: val});
+    ne(val) {
+        return new SqlWhere({ Column: this, Op: '<>', Value: val });
     }
-    gte (val) {
-        return new SqlWhere({Column: this, Op: '>=', Value: val});
+    gt(val) {
+        return new SqlWhere({ Column: this, Op: '>', Value: val });
     }
-    lt (val) {
-        return new SqlWhere({Column: this, Op: '<', Value: val});
+    gte(val) {
+        return new SqlWhere({ Column: this, Op: '>=', Value: val });
     }
-    isNull () {
-        return new SqlWhere({Column: this, Op: 'IS NULL'});
+    lt(val) {
+        return new SqlWhere({ Column: this, Op: '<', Value: val });
     }
-    isNotNull () {
-        return new SqlWhere({Column: this, Op: 'IS NOT NULL'});
+    isNull() {
+        return new SqlWhere({ Column: this, Op: 'IS NULL' });
     }
-    lte (val) {
-        return new SqlWhere({Column: this, Op: '<=', Value: val});
+    isNotNull() {
+        return new SqlWhere({ Column: this, Op: 'IS NOT NULL' });
     }
-    like (val) {
+    lte(val) {
+        return new SqlWhere({ Column: this, Op: '<=', Value: val });
+    }
+    like(val) {
         let value = val;
         if (typeof value === 'string') {
             value = `%${value}%`;
         }
-        return new SqlWhere({Column: this, Op: 'like', Value: value});
+        return new SqlWhere({ Column: this, Op: 'like', Value: value });
     }
-    starts (val) {
+    starts(val) {
         let value = val;
         if (typeof value === 'string') {
             value = `${value}%`;
         }
-        return new SqlWhere({Column: this, Op: 'like', Value: value});
+        return new SqlWhere({ Column: this, Op: 'like', Value: value });
     }
     ends(val) {
         let value = val;
         if (typeof value === 'string') {
             value = `%${value}`;
         }
-        return new SqlWhere({Column: this, Op: 'like', Value: value});
+        return new SqlWhere({ Column: this, Op: 'like', Value: value });
     }
-    in (...args) {
+    in(...args) {
         const values = [];
-        processArgs((v) => { values.push(v) }, ...args); // eslint-disable-line brace-style
-        return new SqlWhere({Column: this, Op: 'in', Value: values});
+        processArgs((v) => { values.push(v); }, ...args); // eslint-disable-line brace-style
+        return new SqlWhere({ Column: this, Op: 'in', Value: values });
     }
-    between (val1, val2) {
+    between(val1, val2) {
         return this.gte(val1).and(this.lte(val2));
     }
-    op (op, val1, val2) {
+    op(op, val1, val2) {
         let o = op;
         if (!this[o]) {
             o = o.toLowerCase();
         }
         return this[o](val1, val2);
     }
-    asc () {
+    asc() {
         return new SqlOrder(this, 'ASC');
     }
-    desc () {
+    desc() {
         return new SqlOrder(this, 'DESC');
     }
-    direction (dir) {
+    direction(dir) {
         return new SqlOrder(this, dir);
     }
-    dir (dir) {
+    dir(dir) {
         return new SqlOrder(this, dir);
     }
-    not () {
+    not() {
         const col = new SqlColumn(this);
         col.Not = true;
         return col;

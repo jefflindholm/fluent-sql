@@ -7,6 +7,7 @@
     "test": "test"
   },
   "scripts": {
+    "do-publish": "npm publish --registry=https://registry.npmjs.org",
     "precommit": "npm run test:single && rm -rf dist",
     "prebuild": "shx rm -rf dist && mkdir dist",
     "build": "babel --presets es2015,stage-0 -d dist/ src/",

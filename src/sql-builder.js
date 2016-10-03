@@ -17,7 +17,7 @@ function updateDelete(operation, sqlTable, details, encryptFunction) {
     let variable;
     let encrypted;
     let column;
-    for (attr in details) {
+    for (attr in details) { // eslint-disable-line no-restricted-syntax
         if (details.hasOwnProperty(attr) && attr !== 'id' && sqlTable.hasOwnProperty(attr)) {
             column = sqlTable[attr];
             variable = attr + item.toString();
@@ -32,10 +32,10 @@ function updateDelete(operation, sqlTable, details, encryptFunction) {
         }
     }
     let sql;
-    if ( operation === 'update' ) {
+    if (operation === 'update') {
         sql = `UPDATE ${sqlTable.getTable()} SET ${columns} WHERE id = ${options.namedValueMarker}id`;
-    } else if ( operation === 'delete' ) {
-        if ( details.id ) {
+    } else if (operation === 'delete') {
+        if (details.id) {
             columns += `${(item === 1 ? '' : sep)}id = ${options.namedValueMarker}id`;
         }
         sql = `DELETE FROM ${sqlTable.getTable()} WHERE ${columns}`;
@@ -97,7 +97,7 @@ export default class SqlBuilder {
         let columnList = '';
         let variableList = '';
         let hasEncryptedValues = false;
-        for (const attr in details) {
+        for (const attr in details) { // eslint-disable-line no-restricted-syntax
             if (details.hasOwnProperty(attr) && attr !== 'id' && sqlTable.hasOwnProperty(attr)) {
                 column = sqlTable[attr];
                 variable = attr + item.toString();

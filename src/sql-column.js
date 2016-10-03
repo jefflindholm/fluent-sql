@@ -43,7 +43,7 @@ export default class SqlColumn {
             this.Table = sqlObject;
             this.ColumnName = columnName;
             this.Literal = literal;
-            this.Alias = columnName ? columnName.toCamel() : undefined;
+            this.Alias = columnName ? columnName.toCamel() : undefined; // eslint-disable-line no-undefined
         }
     }
     // aggregate functions

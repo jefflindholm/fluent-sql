@@ -8,7 +8,6 @@
   },
   "scripts": {
     "precommit": "npm run test:single && rm -rf dist",
-    "prepush": "npm run test:single && rm -rf dist",
     "prebuild": "shx rm -rf dist && mkdir dist",
     "build": "babel --presets es2015,stage-0 -d dist/ src/",
     "prepublish": "npm run build",

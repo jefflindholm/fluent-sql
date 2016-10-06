@@ -1,4 +1,4 @@
-const isNumeric = (val) => parseFloat(val) == val;
+const isNumeric = (val) => parseFloat(val) == val; // eslint-disable-line eqeqeq
 
 function buildParams(query) {
     const results = [];
@@ -58,11 +58,11 @@ function parse(baseQuery) {
     const fields = [];
     let field = null;
     for (let i = 0; i < query.length; i++) {
-        let c = query[i];
+        const c = query[i];
 
         // start of sub field list
         if (c === '{') {
-            if (field ) {
+            if (field) {
                 const result = parse(query.substr(i));
                 field.fields = result.fields;
                 i += result.end;
@@ -113,9 +113,9 @@ function parse(baseQuery) {
     }
     return { fields, end: query.length };
 }
-export default (query) => {
-    return {
+export default (query) => (
+    {
         type: 'Query',
         fields: parse(query).fields,
     }
-}
+);

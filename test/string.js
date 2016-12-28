@@ -5,8 +5,15 @@ describe('string tests', () => {
     it('should camel case a string using toCamel', () => {
         expect('snake_cased_string'.toCamel()).to.equal('snakeCasedString');
     });
+    it('should convert from dash to snake', () => {
+        expect('camel-case-string'.toSnakeCase()).to.equal('camel_case_string');
+    });
+    it('should convert from snake to dash', () => {
+        expect('camel_case_string'.toDashCase()).to.equal('camel-case-string');
+    });
     it('should break a camel case up by dashes using toDashCase', () => {
         expect('camelCaseString'.toDashCase()).to.equal('camel-case-string');
+        expect('CamelCaseString'.toDashCase()).to.equal('camel-case-string');
     });
     it('should break a camel case up by underscores using toSnakeCase', () => {
         expect('camelCaseString'.toSnakeCase()).to.equal('camel_case_string');

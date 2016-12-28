@@ -12,14 +12,17 @@
         return this.replace(/^\s+|\s+$/g, '');
     };
     stringFunctions.toDashCase = function()  {
-        return this.replace(/[A-Z]/g, (m) => {
+        let result = this.replace(/[A-Z]/g, (m) => {
             return `-${m.toLowerCase()}`;
         });
+        result = result.replace(/_/g, '-')
+        return (result[0] === '-') ? result.substring(1) : result;
     };
     stringFunctions.toSnakeCase = function()  {
-        const result = this.replace(/[A-Z]/g, (m) => {
+        let result = this.replace(/[A-Z]/g, (m) => {
             return `_${m.toLowerCase()}`;
         });
+        result = result.replace(/\-/g, '_')
         return (result[0] === '_') ? result.substring(1) : result;
     };
     stringFunctions.capitalizeFirst = function()  {

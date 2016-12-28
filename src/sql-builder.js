@@ -81,7 +81,7 @@ function buildWhere(filterString, sqlTable) {
                         whereClause = tmpClause;
                     }
                 } else {
-                    console.log(`unknown column ${attr} in table ${sqlTable.TableName} from where clause`);
+                    throw { location: 'SqlBuilder:buildWhere', message: (`unknown column ${attr} in table ${sqlTable.TableName} from where clause`) }
                 }
             });
             if (where) {
@@ -112,7 +112,7 @@ export default class SqlBuilder {
          * @depreicated
          */
     insert(sqlTable, details, newId, encryptFunction) {
-            console.log('insert from a SqlBuilder object is deprecated, please use static SqlBuilder.insert');
+        console.log('insert from a SqlBuilder object is deprecated, please use static SqlBuilder.insert');
             return SqlBuilder.insert(sqlTable, details, newId, encryptFunction);
         }
         /*

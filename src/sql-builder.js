@@ -112,7 +112,7 @@ export default class SqlBuilder {
          * @depreicated
          */
     insert(sqlTable, details, newId, encryptFunction) {
-        console.log('insert from a SqlBuilder object is deprecated, please use static SqlBuilder.insert');
+            console.log('insert from a SqlBuilder object is deprecated, please use static SqlBuilder.insert');
             return SqlBuilder.insert(sqlTable, details, newId, encryptFunction);
         }
         /*

@@ -1,0 +1,13 @@
+[ignore]
+.*/__tests__/.*
+.*/build/.*
+.*/node_modules/.*
+
+[include]
+src/*.js
+
+[libs]
+flow-typed
+
+[options]
+unsafe.enable_getters_and_setters=true

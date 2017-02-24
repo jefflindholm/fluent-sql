@@ -1,7 +1,10 @@
-node_modules/
-.idea/
+node_modules
+.idea
+.vscode
+code
+flow-typed
+
 coverage
 coverage.html
-code/
 *.map
 *-compiled.js

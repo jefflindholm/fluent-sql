@@ -1,17 +1,19 @@
 ---
   extends:
-    - plugin:react/recommended
     - airbnb-base
+    - plugin:flowtype/recommended
 
   env:
     browser: true
     node: true
     es6: true
     mocha: true
+    jest: true
 
   parserOptions:
    ecmaVersion: 6
    sourceType: "module"
+   allowImportExportEverywhere: true
    ecmaFeatures:
     jsx: true
 
@@ -25,14 +27,10 @@
     __SERVER__: true
 
   plugins:
-    - react
+    - flowtype
+    - import
 
   rules:
-    react/jsx-uses-vars: 1
-    react/prop-types: [1, { ignore: [children] }]
-    react/prefer-stateless-function: warn
-    react/jsx-curly-spacing: 0
-
     # possible errors
     camelcase: 0
     comma-dangle: 0
@@ -41,10 +39,10 @@
     curly: 0
     eol-last: 1
     eqeqeq: 1
-    indent: [2, 4]
-    init-declarations: 1
+    indent: [2, 4, {SwitchCase: 1}]
+    init-declarations: 2
     key-spacing: 1
-    max-len: [2, 200]
+    max-len: ["error", { code: 200 }]
     no-alert: 1
     no-catch-shadow: 2
     no-cond-assign: 2
@@ -78,7 +76,6 @@
     no-undef-init: 2
     no-undef: 2
     no-undefined: 2
-    no-underscore-dangle: 0
     no-unexpected-multiline: 2
     no-unreachable: 2
     no-unused-vars: 2
@@ -88,4 +85,3 @@
     use-isnan: 2
     valid-jsdoc: 2
     valid-typeof: 2
-    wrap-iife: 0

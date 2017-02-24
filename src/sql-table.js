@@ -1,9 +1,10 @@
 // @flow
 /* eslint-disable no-underscore-dangle, class-methods-use-this */
-import './string';
-import SqlColumn from './sql-column';
-import SqlJoin from './sql-join';
-import SqlQuery from './sql-query';
+import './string'
+import SqlColumn from './sql-column'
+import SqlJoin from './sql-join'
+import SqlQuery from './sql-query'
+import SqlWhere from './sql-where'
 
 export default class SqlTable {
     /*
@@ -16,7 +17,9 @@ export default class SqlTable {
      *          columns: [{ColumnName: 'id'}, {ColumnName: 'username'}, {ColumnName: 'password'}]
      *      }, 'u');
      */
+    // $FlowFixMe
     constructor(...args) {
+        // $FlowFixMe
         if (!new.target) {
             return new SqlTable(...args);
         }

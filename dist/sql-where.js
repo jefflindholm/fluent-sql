@@ -5,33 +5,46 @@ Object.defineProperty(exports, "__esModule", {
 });
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+/* eslint-disable no-underscore-dangle */
 
-require('./string.js');
+
+require('./string');
 
 var _helpers = require('./helpers');
+
+var _sqlColumn = require('./sql-column');
+
+var _sqlColumn2 = _interopRequireDefault(_sqlColumn);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
 var SqlWhere = function () {
     function SqlWhere(details) {
+        var _this = this;
+
         _classCallCheck(this, SqlWhere);
 
+        // $FlowFixMe
         if (!new.target) {
             return new SqlWhere(details);
         }
-        this.Wheres = [];
+        this._Wheres = [];
+        this._Column = null;
+        this._Value = null;
         if (details) {
             this.Column = details.Column;
             this.Op = details.Op;
             this.Value = details.Value;
         }
         this.add = function (whereClause) {
-            var result = this;
-            if (this.Column != null) {
+            var result = _this;
+            if (_this.Column != null) {
                 result = new SqlWhere();
-                result.type = this.type;
-                this.type = null;
-                result.Wheres.push(this);
+                result.type = _this.type;
+                _this.type = null;
+                result.Wheres.push(_this);
             }
             result.Wheres.push(whereClause);
             return result;
@@ -91,10 +104,10 @@ var SqlWhere = function () {
     }, {
         key: 'type',
         get: function get() {
-            return this._type;
+            return this._Type;
         },
         set: function set(v) {
-            this._type = v;
+            this._Type = v;
         }
     }]);
 

@@ -5,8 +5,10 @@ Object.defineProperty(exports, "__esModule", {
 });
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+/* eslint-disable no-underscore-dangle, class-methods-use-this */
 
-require('./string.js');
+
+require('./string');
 
 var _sqlColumn = require('./sql-column');
 
@@ -36,6 +38,8 @@ var SqlTable = function () {
      *      }, 'u');
      */
     function SqlTable() {
+        var _this = this;
+
         _classCallCheck(this, SqlTable);
 
         for (var _len = arguments.length, args = Array(_len), _key = 0; _key < _len; _key++) {
@@ -63,14 +67,12 @@ var SqlTable = function () {
             columns.forEach(function (c) {
                 var name = c.ColumnName || c.name;
                 var prop = name.toCamel();
-                var col = new _sqlColumn2.default(this, name, c.Literal);
-                this.Columns.push(col);
-                this[prop] = col;
+                var col = new _sqlColumn2.default(_this, name, c.Literal);
+                _this.Columns.push(col);
+                _this[prop] = col;
             }, this);
         }
     }
-    /* eslint-disable brace-style */
-
 
     _createClass(SqlTable, [{
         key: 'getTable',
@@ -135,6 +137,9 @@ var SqlTable = function () {
         }
     }, {
         key: 'TableName',
+
+
+        /* eslint-disable brace-style */
         get: function get() {
             return this._tableName;
         },

@@ -20,7 +20,10 @@
     "test:single": "./node_modules/.bin/mocha --require babel-core/register",
     "debug": "start node-inspector && mocha --debug-brk  --require babel-core/register --reporter spec",
     "semantic-release": "semantic-release pre && npm publish && semantic-release post",
-    "lint": "eslint src/*.js"
+    "lint": "eslint src/*.js",
+    "build:types": "flow-typed install",
+    "postinstall": "npm run build:types"
+
   },
   "devDependencies": {
     "babel": "^6.5.2",

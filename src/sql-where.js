@@ -4,8 +4,13 @@ import './string';
 import { SqlError } from './helpers';
 import SqlColumn from './sql-column'
 
+export type SimpleWhere = {
+    Column: SqlColumn,
+    Op: string,
+    Value: any,
+}
 export default class SqlWhere {
-    constructor(details: ?SqlWhere) {
+    constructor(details?: SqlWhere | SimpleWhere) {
         // $FlowFixMe
         if (!new.target) {
             return new SqlWhere(details);
@@ -32,7 +37,7 @@ export default class SqlWhere {
     }
 
     _Wheres: SqlWhere[]
-    _Column: SqlColumn
+    _Column: ?SqlColumn
     _Op: string
     _Value: any
     _Type: ?string
@@ -42,7 +47,7 @@ export default class SqlWhere {
         return this._Wheres;
     }
 
-    get Column(): SqlColumn {
+    get Column(): ?SqlColumn {
         return this._Column;
     }
 
@@ -62,7 +67,7 @@ export default class SqlWhere {
         this._Wheres = v;
     }
 
-    set Column(v: SqlColumn) {
+    set Column(v: ?SqlColumn) {
         this._Column = v;
     }
 

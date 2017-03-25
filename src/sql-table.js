@@ -43,6 +43,7 @@ export default class SqlTable {
                 const prop = name.toCamel();
                 const col = new SqlColumn(this, name, c.Literal);
                 this.Columns.push(col);
+                // $FlowFixMe
                 this[prop] = col;
             }, this);
         }
@@ -67,6 +68,7 @@ export default class SqlTable {
         return this.Alias || this.TableName;
     }
     as(alias: string) {
+        // $FlowFixMe
         const table = new SqlTable(this, alias);
         table.Alias = alias;
         return table;

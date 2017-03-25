@@ -1,9 +1,11 @@
-import './string.js';
+/* eslint-disable no-underscore-dangle */
+
+import './string';
 
 import SqlColumn from './sql-column';
 
 export default class SqlOrder {
-    constructor(sqlObject, dir) {
+    constructor(sqlObject: any, dir: string) {
         if (!new.target) {
             return new SqlOrder(sqlObject, dir);
         }
@@ -19,19 +21,22 @@ export default class SqlOrder {
         }
     }
 
-    get Column() {
+    _column: string;
+    _direction: string;
+
+    get Column(): string {
         return this._column;
     }
 
-    set Column(v) {
+    set Column(v: string) {
         this._column = v;
     }
 
-    get Direction() {
+    get Direction(): string {
         return this._direction;
     }
 
-    set Direction(v) {
+    set Direction(v: string) {
         this._direction = v;
     }
 }

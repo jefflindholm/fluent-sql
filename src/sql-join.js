@@ -1,33 +1,34 @@
-import './string.js';
+/* eslint-disable no-underscore-dangle */
+// @flow
+import './string';
 
 import SqlColumn from './sql-column';
 
 export default class SqlJoin {
-    constructor(sqlColumn) {
+    constructor(sqlColumn: SqlColumn) {
+        // $FlowFixMe
         if (!new.target) {
             return new SqlJoin(sqlColumn);
         }
-        if (!(sqlColumn instanceof SqlColumn)) {
-            throw { location: 'SqlJoin::constructor', message: 'trying to join on something not a SqlColumn' }; // eslint-disable-line
-        }
         this.From = sqlColumn;
     }
-    get From() {
+
+    _from: SqlColumn
+    _to: SqlColumn
+
+    get From(): SqlColumn {
         return this._from;
     }
-    set From(v) {
+    set From(v: SqlColumn) {
         this._from = v;
     }
-    get To() {
+    get To(): SqlColumn {
         return this._to;
     }
-    set To(v) {
+    set To(v: SqlColumn) {
         this._to = v;
     }
-    using(sqlColumn) {
-        if (!(sqlColumn instanceof SqlColumn)) {
-            throw { location: 'SqlJoin::using', message: 'trying to join on something not a SqlColumn' }; //eslint-disable-line
-        }
+    using(sqlColumn: SqlColumn) {
         this.To = sqlColumn;
         return this;
     }

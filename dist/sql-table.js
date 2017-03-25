@@ -22,6 +22,10 @@ var _sqlQuery = require('./sql-query');
 
 var _sqlQuery2 = _interopRequireDefault(_sqlQuery);
 
+var _sqlWhere = require('./sql-where');
+
+var _sqlWhere2 = _interopRequireDefault(_sqlWhere);
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
@@ -37,6 +41,7 @@ var SqlTable = function () {
      *          columns: [{ColumnName: 'id'}, {ColumnName: 'username'}, {ColumnName: 'password'}]
      *      }, 'u');
      */
+    // $FlowFixMe
     function SqlTable() {
         var _this = this;
 
@@ -46,6 +51,7 @@ var SqlTable = function () {
             args[_key] = arguments[_key];
         }
 
+        // $FlowFixMe
         if (!new.target) {
             return new (Function.prototype.bind.apply(SqlTable, [null].concat(args)))();
         }

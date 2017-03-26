@@ -1,19 +1,20 @@
 //import expect from 'chai';
 //import sprintf from 'sprintf-js';
 /* global describe it */
+import circularJSON from 'circular-json'
 import '../src/string';
-import {SqlQuery} from '../src/fluent-sql.js';
-import {SqlTable} from '../src/fluent-sql.js';
-import {SqlColumn} from '../src/fluent-sql.js';
-import {SqlWhere} from '../src/fluent-sql.js';
-import {SqlOrder} from '../src/fluent-sql.js';
-import {SqlJoin} from '../src/fluent-sql.js';
-import {SqlBuilder} from '../src/fluent-sql.js';
-import {setDefaultOptions, getDefaultOptions} from '../src/fluent-sql.js';
+import {SqlQuery} from '../src/fluent-sql';
+import {SqlTable} from '../src/fluent-sql';
+import {SqlColumn} from '../src/fluent-sql';
+import {SqlWhere} from '../src/fluent-sql';
+import {SqlOrder} from '../src/fluent-sql';
+import {SqlJoin} from '../src/fluent-sql';
+import {SqlBuilder} from '../src/fluent-sql';
+import {setDefaultOptions, getDefaultOptions} from '../src/fluent-sql';
 
 const expect = require('chai').expect;
 const sprintf = require('sprintf-js').sprintf;
-//const sql = require('../src/fluent-sql.js');
+//const sql = require('../src/fluent-sql');
 
 describe('fluent sql tests', () => {
 
@@ -23,19 +24,31 @@ describe('fluent sql tests', () => {
     const financeColumns = [{name: 'id'}, {name: 'business_id'}, {name: 'balance'}, {name: 'finance_type'}];
     const finance = new SqlTable({name: 'finance', columns: financeColumns});
 
-    function getBusinessCols() {
+    function getBusinessCols(tableName = 'business') {
         let columns = '';
         businessColumns.forEach((ele, idx) => {
             if (idx !== 0) {
                 columns += ',';
             }
-            //columns += '\n[business].'+ele.ColumnName+' as ['+ele.ColumnName.toCamel() +']';
-            columns += `\n[business].${ele.ColumnName} as [${ele.ColumnName.toCamel()}]`;
+            columns += `\n[${tableName}].${ele.ColumnName} as [${ele.ColumnName.toCamel()}]`;
         });
         return columns;
     }
 
     describe('SqlQuery tests', () => {
+        it('should have 2 columns from business with a schema when selecting star()', () => {
+            let ipBusiness = business.as('b')
+            console.log(circularJSON.stringify(ipBusiness, null, 2))
+            ipBusiness.Schema = 'ip'
+            const query = new SqlQuery()
+                .select(ipBusiness.star()).from(ipBusiness);
+
+            const cmd = query.genSql();
+            expect(cmd.countSql).to.equal(undefined);
+            expect(Object.keys(cmd.values).length).to.equal(0);
+            const columns = getBusinessCols('b');
+            expect(cmd.fetchSql.trim()).to.equal(`SELECT${columns}\nFROM\nip.business as [b]`);
+        });
         it('should have 2 columns from business when selecting star()', () => {
             const query = new SqlQuery()
                 .select(business.star()).from(business);

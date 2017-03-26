@@ -326,12 +326,12 @@ export default class SqlQuery {
         }, this);
         let from = '';
         this.From.forEach((f, idx) => {
-            from += `${(idx > 0 ? ',' : '')}\n${f.TableName} as ${f.Alias.sqlEscape(this, 'table-alias')}`;
+            from += `${(idx > 0 ? ',' : '')}\n${f.getTable()} as ${f.Alias.sqlEscape(this, 'table-alias')}`;
         }, this);
         let join = '';
         this.Joins.forEach((j) => {
             const type = j.Left ? 'LEFT ' : (j.Right ? 'RIGHT ' : ''); // eslint-disable-line no-nested-ternary
-            const from = j.From.Table.TableName;
+            const from = j.From.Table.getTable();
             const alias = j.From.Table.Alias.sqlEscape(this, 'table-alias');
             const fromCol = j.From.ColumnName;
             const to = j.To.Table.Alias.sqlEscape(this, 'table-alias');

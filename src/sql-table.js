@@ -43,6 +43,8 @@ export default class SqlTable {
         }
     }
     /* eslint-disable brace-style */
+    get Schema() { return this._schema }
+    set Schema(v) { this._schema = v}
     get TableName() { return this._tableName; }
     set TableName(v) { this._tableName = v; }
     get Alias() { return this._alias; }
@@ -52,6 +54,9 @@ export default class SqlTable {
     /* eslint-enable */
 
     getTable() {
+        if (this.Schema) {
+            return `${this.Schema}.${this.TableName}`
+        }
         return this.TableName;
     }
     getAlias() {

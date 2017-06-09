@@ -180,6 +180,17 @@ describe('fluent sql tests', () => {
 
     });
 
+    describe('SqlQuery simple agregate tests', () => {
+        it('should allow a aggregate without specific group by at the aggregate', () => {
+            const query = new SqlQuery().from(finance).select(finance.id.count().on(null));
+            const cmd = query.genSql();
+            const expected = 'SELECT' +
+                '\nCOUNT([finance].id) as [id_count]' +
+                '\nFROM' +
+                '\nfinance as [finance]';
+            expect(expected).to.equal(cmd.fetchSql);
+        })
+    })
     describe('SqlQuery Group By clause tests', () => {
         it('should allow you to aggregate selected columns with group by', () => {
             const aggregates = [

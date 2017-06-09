@@ -304,7 +304,9 @@ export default class SqlQuery {
                 hasEncrypted = literal !== null;
                 literal = literal || c.qualifiedName(this);
                 columns += `${(idx > 0 ? ',' : '')}\n${c.Aggregate.operation}(${literal}) as ${c.Alias.sqlEscape(this, 'column-alias')}`;
-                groupBy.push(c.Aggregate.groupBy.qualifiedName(this));
+                if (c.Aggregate.groupBy) {
+                    groupBy.push(c.Aggregate.groupBy.qualifiedName(this));
+                }
             } else {
                 let literal = decryptFunction ? decryptFunction(c, true) : null;
                 hasEncrypted = literal !== null;
@@ -346,14 +348,14 @@ export default class SqlQuery {
         const top = (this.topCount ? ` TOP ${this.topCount}` : '');
         let select = `SELECT${top}${(this.Distinct ? ' DISTINCT' : '')}${columns}\nFROM${from}${join}`;
 
+        if (where && where !== '') {
+            select += `\nWHERE ${where}`;
+        }
         if (groupBy.length > 0) {
             select += `\nGROUP BY ${groupBy.join()}`;
         }
         if (having && having !== '') {
             select += `\nHAVING ${having}`;
-        }
-        if (where && where !== '') {
-            select += `\nWHERE ${where}`;
         }
 
         let page = this.pageNo;

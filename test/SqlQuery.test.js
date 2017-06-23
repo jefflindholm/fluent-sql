@@ -320,6 +320,28 @@ describe('fluent sql tests', () => {
             expect(cmd.values[id]).to.equal(10000);
             expect(cmd.fetchSql.trim()).to.equal(`SELECT\n[business].id as [id],\n[business].business_name as [businessName]\nFROM\nbusiness as [business]\nWHERE [business].id = (:${id})`);
         });
+        it('should handle a where clause with 0 as value', () => {
+            const query = new SqlQuery()
+                .select(business.id, business.businessName).from(business)
+                .where(business.id.eq(0));
+            const cmd = query.genSql();
+            expect(cmd.countSql).to.equal(undefined);
+            expect(Object.keys(cmd.values).length).to.equal(1);
+            const id = Object.keys(cmd.values)[0];
+            expect(cmd.values[id]).to.equal(0);
+            expect(cmd.fetchSql.trim()).to.equal(`SELECT\n[business].id as [id],\n[business].business_name as [businessName]\nFROM\nbusiness as [business]\nWHERE [business].id = (:${id})`);
+        });
+        it('should handle a where clause with false as value', () => {
+            const query = new SqlQuery()
+                .select(business.id, business.businessName).from(business)
+                .where(business.id.eq(false));
+            const cmd = query.genSql();
+            expect(cmd.countSql).to.equal(undefined);
+            expect(Object.keys(cmd.values).length).to.equal(1);
+            const id = Object.keys(cmd.values)[0];
+            expect(cmd.values[id]).to.equal(false);
+            expect(cmd.fetchSql.trim()).to.equal(`SELECT\n[business].id as [id],\n[business].business_name as [businessName]\nFROM\nbusiness as [business]\nWHERE [business].id = (:${id})`);
+        });
         it('should handle a where clause with ands', () => {
             const query = new SqlQuery()
                 .select(business.id, business.businessName).from(business)

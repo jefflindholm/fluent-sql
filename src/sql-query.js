@@ -81,7 +81,7 @@ export default class SqlQuery {
                     } else if (where.Value && where.Value.Table) {
                         piece = `${where.Column.qualifiedName(this)} ${where.Op} (${where.Value.qualifiedName(this)})`;
                     } else {
-                        if (!where.Value) {
+                        if ((!where.Value) && where.Value !== 0 && where.Value !== false) {
                             piece = `${where.Column.qualifiedName(this)} ${where.Op}`;
                         } else {
                             let data;

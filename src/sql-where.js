@@ -1,8 +1,11 @@
+// @flow
 import './string.js';
 import { SqlError } from './helpers';
+import SqlColumn from './sql-column';
 
 export default class SqlWhere {
-    constructor(details) {
+    constructor(details: ?SqlWhere) {
+        // $FlowFixMe
         if (!new.target) {
             return new SqlWhere(details);
         }
@@ -12,72 +15,78 @@ export default class SqlWhere {
             this.Op = details.Op;
             this.Value = details.Value;
         }
-        this.add = function (whereClause) {
+        this.add = function (whereClause: SqlWhere): SqlWhere {
             let result = this;
             if (this.Column != null) {
                 result = new SqlWhere();
-                result.type = this.type;
-                this.type = null;
+                result.Type = this.Type;
+                this.Type = null;
                 result.Wheres.push(this);
             }
             result.Wheres.push(whereClause);
             return result;
         };
     }
+    add: (wc: SqlWhere) => SqlWhere;
+    _Wheres: Array<SqlWhere>;
+    _Column: SqlColumn;
+    _Op: string;
+    _Value: any;
+    _Type: 'or' | 'and' | null;
 
-    get Wheres() {
+    get Wheres(): Array<SqlWhere> {
         return this._Wheres;
     }
 
-    get Column() {
+    get Column(): SqlColumn {
         return this._Column;
     }
 
-    get Op() {
+    get Op(): string {
         return this._Op;
     }
 
-    get Value() {
+    get Value(): any {
         return this._Value;
     }
 
-    get type() {
-        return this._type;
+    get Type(): 'or' | 'and' | null {
+        return this._Type;
     }
 
-    set Wheres(v) {
+    set Wheres(v: Array<SqlWhere>) {
         this._Wheres = v;
     }
 
-    set Column(v) {
+    set Column(v: SqlColumn) {
         this._Column = v;
     }
 
-    set Op(v) {
+    set Op(v: string) {
         this._Op = v;
     }
 
-    set Value(v) {
+    set Value(v: any) {
         this._Value = v;
     }
 
-    set type(v) {
-        this._type = v;
+    set Type(v: 'or' | 'and' | null) {
+        this._Type = v;
     }
 
-    or(whereClause) {
-        if (this.type && this.type !== 'or') {
+    or(whereClause: SqlWhere) {
+        if (this.Type && this.Type !== 'or') {
             throw new SqlError('SqlWhere::or', 'cannot add \'or\' to \'and\' group');
         }
-        this.type = 'or';
+        this.Type = 'or';
         return this.add(whereClause);
     }
 
-    and(whereClause) {
-        if (this.type && this.type !== 'and') {
+    and(whereClause: SqlWhere) {
+        if (this.Type && this.Type !== 'and') {
             throw new SqlError('SqlWhere::and', 'cannot add \'and\' to \'or\' group');
         }
-        this.type = 'and';
+        this.Type = 'and';
         return this.add(whereClause);
     }
 }

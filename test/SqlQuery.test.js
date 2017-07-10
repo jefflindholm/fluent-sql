@@ -38,12 +38,12 @@ describe('fluent sql tests', () => {
     describe('SqlQuery tests', () => {
         it('should have 2 columns from business with a schema when selecting star()', () => {
             let ipBusiness = business.as('b')
-            console.log(circularJSON.stringify(ipBusiness, null, 2))
             ipBusiness.Schema = 'ip'
             const query = new SqlQuery()
                 .select(ipBusiness.star()).from(ipBusiness);
 
             const cmd = query.genSql();
+            console.log(JSON.stringify(cmd, null, 2))
             expect(cmd.countSql).to.equal(undefined);
             expect(Object.keys(cmd.values).length).to.equal(0);
             const columns = getBusinessCols('b');

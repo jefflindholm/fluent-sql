@@ -1,12 +1,14 @@
+// @flow
 import './string.js';
-
+import SqlColumn from './sql-column';
 import SqlTable from './sql-table';
 import SqlWhere from './sql-where';
 import SqlQuery, {
     getDefaultOptions
 } from './sql-query';
 
-function updateDelete(operation, sqlTable, details, encryptFunction) {
+type EncryptFunction = (SqlColumn, string) => string;
+function updateDelete(operation: 'update' | 'delete', sqlTable: SqlTable, details: any, encryptFunction: EncryptFunction) {
     if (!(sqlTable instanceof SqlTable)) {
         throw {
             location: 'SqlBuilder::update',
@@ -21,13 +23,13 @@ function updateDelete(operation, sqlTable, details, encryptFunction) {
     let hasEncryptedValues = false;
     let item = 1;
     let columns = '';
-    let attr;
-    let variable;
-    let encrypted;
-    let column;
+    let attr: string;
+    let variable: string;
+    let encrypted: ?string;
+    let column: SqlColumn;
     for (attr in details) { // eslint-disable-line no-restricted-syntax
         if (details.hasOwnProperty(attr) && attr !== 'id' && sqlTable.hasOwnProperty(attr)) {
-            column = sqlTable[attr];
+            column = (sqlTable: any)[attr];
             variable = attr + item.toString();
             data[variable] = details[attr];
             encrypted = (encryptFunction ? encryptFunction(column, variable) : null);
@@ -35,7 +37,7 @@ function updateDelete(operation, sqlTable, details, encryptFunction) {
             if (encrypted != null) {
                 hasEncryptedValues = true;
             }
-            columns += `${(item === 1 ? '' : sep)}${attr.toSnakeCase()} = ${variable}`;
+            columns += `${(item === 1 ? '' : sep)}${(attr: any).toSnakeCase()} = ${variable}`;
             item += 1;
         }
     }
@@ -48,9 +50,7 @@ function updateDelete(operation, sqlTable, details, encryptFunction) {
         }
         sql = `DELETE FROM ${sqlTable.getTable()} WHERE ${columns}`;
     } else {
-        throw new {
-            msg: `Invalid operation ${operation}`
-        }; //eslint-disable-line
+        throw new Error(`Invalid operation ${operation}`);
     }
     return {
         sql,
@@ -59,7 +59,7 @@ function updateDelete(operation, sqlTable, details, encryptFunction) {
     };
 }
 
-function buildWhere(filterString, sqlTable) {
+function buildWhere(filterString: string, sqlTable: SqlTable): SqlWhere {
     let where = null
     if (filterString) {
         const ors = filterString.split(';');
@@ -74,7 +74,7 @@ function buildWhere(filterString, sqlTable) {
                 const val1 = parts[2];
                 const val2 = parts.length > 3 ? parts[3] : null;
                 if (sqlTable.hasOwnProperty(attr)) {
-                    const tmpClause = sqlTable[attr].op(op, val1, val2);
+                    const tmpClause = (((sqlTable: any)[attr]): SqlColumn).op(op, val1, val2);
                     if (whereClause) {
                         whereClause = whereClause.and(tmpClause);
                     } else {
@@ -91,38 +91,18 @@ function buildWhere(filterString, sqlTable) {
             }
         });
     }
-    return where;
+    return where || new SqlWhere();
 }
 
 export default class SqlBuilder {
     /*
-     * @depreicated
-     */
-    constructor() {
-            console.log('SqlBuilder object is deprecated, please use static SqlBuilder methods directly');
-        }
-        /*
-         * @depreicated
-         */
-    update(sqlTable, details, encryptFunction) {
-            console.log('update from a SqlBuilder object is deprecated, please use static SqlBuilder.update');
-            return SqlBuilder.update(sqlTable, details, encryptFunction);
-        }
-        /*
-         * @depreicated
-         */
-    insert(sqlTable, details, newId, encryptFunction) {
-            console.log('insert from a SqlBuilder object is deprecated, please use static SqlBuilder.insert');
-            return SqlBuilder.insert(sqlTable, details, newId, encryptFunction);
-        }
-        /*
-         * @param {sqlTable} - SqlTable instance for the table to build the update for
-         * @param {details} - object with columns and values
-         * @param {encryptFunction} - function(SqlColumn, variableName) - where SqlColumn is the instance of the column from the table
-         *                              being updated, variableName is the sql replacement name (ie. businessName1)
-         *                              should return null if not encrypted
-         * @return { sql, values, hasEncrypted }
-         */
+        * @param {sqlTable} - SqlTable instance for the table to build the update for
+        * @param {details} - object with columns and values
+        * @param {encryptFunction} - function(SqlColumn, variableName) - where SqlColumn is the instance of the column from the table
+        *                              being updated, variableName is the sql replacement name (ie. businessName1)
+        *                              should return null if not encrypted
+        * @return { sql, values, hasEncrypted }
+        */
     static update(sqlTable, details, encryptFunction) {
         return updateDelete('update', sqlTable, details, encryptFunction);
     }
@@ -150,7 +130,7 @@ export default class SqlBuilder {
                     column = sqlTable[attr];
                     variable = attr + item.toString();
                     data[variable] = details[attr];
-                    columnList += (item === 1 ? '' : ',') + attr.toSnakeCase();
+                    columnList += (item === 1 ? '' : ',') + (attr: any).toSnakeCase();
                     encrypted = (encryptFunction ? encryptFunction(column, variable) : null);
                     variable = encrypted || `${options.namedValueMarker}${variable}`;
                     if (encrypted != null) {

@@ -22,7 +22,7 @@ export default class SqlTable {
         if (!new.target) {
             return new SqlTable(...args);
         }
-        let columns: Array<{columnName: string, name: string, literal: string, Literal: string}> = [];
+        let columns: Array<{ColumnName: string, name: string, literal: string, Literal: string}> = [];
         let alias: string = '';
         if (typeof args[0] === 'string') {
             this.TableName = args[0];
@@ -38,9 +38,9 @@ export default class SqlTable {
         this.Columns = [];
         if (columns) {
             columns.forEach((c) => {
-                const name = c.ColumnName || c.name;
+                const name: string = c.ColumnName || c.name;
                 // $FlowFixMe
-                const prop: TableColumn = name.toCamel();
+                const prop: TableColumn = (name: any).toCamel();
                 const col = new SqlColumn(this, name, c.literal || c.Literal);
                 this.Columns.push(col);
                 // $FlowFixMe

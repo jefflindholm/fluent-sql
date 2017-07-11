@@ -59,7 +59,7 @@ export default class SqlQuery {
     _From: Array<SqlTable>;
     _Joins: Array<SqlJoin>;
     _Wheres: Array<SqlWhere>;
-    _OrderBy: Array<SqlColumn>;
+    _OrderBy: Array<SqlOrder>;
     _GroupBy: Array<SqlColumn>;
     _Having: Array<SqlWhere>;
     _VariableCount: number;
@@ -69,7 +69,7 @@ export default class SqlQuery {
     _Distinct: boolean;
     BuildWherePart: (wa: Array<SqlWhere>, v: Array<any>, c: 'or' | 'and' | null) => string;
 
-    constructor(options: SqlQuery | OptionType) {
+    constructor(options?: SqlQuery | OptionType) {
         // $FlowFixMe
         if (!new.target) {
             return new SqlQuery(options);
@@ -158,8 +158,8 @@ export default class SqlQuery {
     set Joins(v: Array<SqlJoin>) { this._Joins = v; }
     get Wheres(): Array<SqlWhere> { return this._Wheres; }
     set Wheres(v: Array<SqlWhere>) { this._Wheres = v; }
-    get OrderBy(): Array<SqlColumn> { return this._OrderBy; }
-    set OrderBy(v: Array<SqlColumn>) { this._OrderBy = v; }
+    get OrderBy(): Array<SqlOrder> { return this._OrderBy; }
+    set OrderBy(v: Array<SqlOrder>) { this._OrderBy = v; }
     get Having(): Array<SqlWhere> { return this._Having; }
     set Having(v: Array<SqlWhere>) { this._Having = v; }
 
@@ -199,6 +199,12 @@ export default class SqlQuery {
         }, ...args); // eslint-disable-line brace-style
         return this;
     };
+    validDir = (dir: ?string): 'ASC' | 'DESC' => {
+        if (!dir) {
+            return 'ASC';
+        }
+        return dir === 'DESC' ? 'DESC' : 'ASC';
+    }
     /*
      * @param {defaultSqlTable} - table to use if the order string does not contain qualified column names
      * @param {orderString} - order string in the form col dir, col dir, ... col = columnName or tableName.columnName, dir = ASC or DESC
@@ -212,10 +218,10 @@ export default class SqlQuery {
             let col: string;
             let table: SqlTable;
             let parts: Array<string>;
-            let dir: string;
+            let dir: 'ASC' | 'DESC';
             orderString.split(',').forEach( (o) => {
                 parts = o.trim().split(' ');
-                dir = parts.length > 1 ? parts[1] : 'ASC';
+                dir = parts.length > 1 ? this.validDir(parts[1]) : 'ASC';
                 parts = parts[0].split('.');
                 if (parts.length > 1) {
                     // $FlowFixMe
@@ -338,9 +344,9 @@ export default class SqlQuery {
         let orderString: string = '';
         let data: any;
         let hasEncrypted = false;
-        this.Columns.forEach((c, idx) => {
+        this.Columns.forEach((c: SqlColumn, idx: number) => {
             if (c.Literal) {
-                columns += `${(idx > 0 ? ',' : '')}\n(${c.Literal}) as ${c.Alias.sqlEscape(this, 'column-alias')}`;
+                columns += `${(idx > 0 ? ',' : '')}\n(${c.Literal}) as ${(c.Alias: any).sqlEscape(this, 'column-alias')}`;
                 // handle any columns that might have values
                 if (c.Values) {
                     for (const attr in c.Values) {
@@ -352,15 +358,15 @@ export default class SqlQuery {
                     }
                 }
                 if (c.Grouped) {
-                    groupBy.push(`(${c.Literal})`);
+                    groupBy.push(`(${c.Literal || c.ColumnName})`);
                 }
             } else if (c.Aggregate) {
                 let literal = decryptFunction ? decryptFunction(c, true) : null;
                 hasEncrypted = literal !== null;
                 literal = literal || c.qualifiedName(this);
-                columns += `${(idx > 0 ? ',' : '')}\n${c.Aggregate.operation}(${literal}) as ${c.Alias.sqlEscape(this, 'column-alias')}`;
-                if (c.Aggregate.groupBy) {
-                    groupBy.push(c.Aggregate.groupBy.qualifiedName(this));
+                columns += `${(idx > 0 ? ',' : '')}\n${c.Aggregate.Operation}(${literal}) as ${(c.Alias: any).sqlEscape(this, 'column-alias')}`;
+                if (c.Aggregate.GroupBy) {
+                    groupBy.push(c.Aggregate.GroupBy.qualifiedName(this));
                 }
             } else {
                 let literal = decryptFunction ? decryptFunction(c, true) : null;
@@ -369,10 +375,10 @@ export default class SqlQuery {
                 if (maskFunction) {
                     literal = maskFunction(c, literal) || literal;
                 }
-                columns += `${(idx > 0 ? ',' : '')}\n${literal} as ${c.Alias.sqlEscape(this, 'column-alias')}`;
+                columns += `${(idx > 0 ? ',' : '')}\n${literal} as ${(c.Alias: any).sqlEscape(this, 'column-alias')}`;
 
                 if (!orderString) {
-                    orderString = c.Alias.sqlEscape(this, 'column-alias');
+                    orderString = (c.Alias: any).sqlEscape(this, 'column-alias');
                 }
 
                 if ( c.Grouped ) {
@@ -382,16 +388,15 @@ export default class SqlQuery {
         }, this);
         let from = '';
         this.From.forEach((f, idx) => {
-            // $FlowFixMe
-            from += `${(idx > 0 ? ',' : '')}\n${f.getTable()} as ${f.Alias.sqlEscape(this, 'table-alias')}`;
+            from += `${(idx > 0 ? ',' : '')}\n${f.getTable()} as ${(f.Alias: any).sqlEscape(this, 'table-alias')}`;
         }, this);
         let join = '';
         this.Joins.forEach((j) => {
             const type = j.Left ? 'LEFT ' : (j.Right ? 'RIGHT ' : ''); // eslint-disable-line no-nested-ternary
             const from = j.From.Table.getTable();
-            const alias = j.From.Table.Alias.sqlEscape(this, 'table-alias');
+            const alias = (j.From.Table.Alias: any).sqlEscape(this, 'table-alias');
             const fromCol = j.From.ColumnName;
-            const to = j.To.Table.Alias.sqlEscape(this, 'table-alias');
+            const to = (j.To.Table.Alias: any).sqlEscape(this, 'table-alias');
             const toCol = j.To.ColumnName;
             join += `\n${type}JOIN ${from} as ${alias} on ${alias}.${fromCol} = ${to}.${toCol}`
         }, this);
@@ -431,7 +436,7 @@ export default class SqlQuery {
                 this.OrderBy.forEach( (o, idx) => {
                     // since we know we are going to be ordering over a select, we don't need a table
                     // in this, just use the column alias
-                    order += `${(idx > 0 ? ',' : '')}${o.Column.Alias.sqlEscape(this, 'column-alias')} ${o.Direction}`;
+                    order += `${(idx > 0 ? ',' : '')}${(o.Column.Alias: any).sqlEscape(this, 'column-alias')} ${o.Direction}`;
                 }, this);
                 orderString = order;
             }

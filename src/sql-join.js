@@ -1,9 +1,11 @@
+// @flow
 import './string.js';
 
 import SqlColumn from './sql-column';
 
 export default class SqlJoin {
-    constructor(sqlColumn) {
+    constructor(sqlColumn: SqlColumn) {
+        // $FlowFixMe
         if (!new.target) {
             return new SqlJoin(sqlColumn);
         }
@@ -12,19 +14,37 @@ export default class SqlJoin {
         }
         this.From = sqlColumn;
     }
-    get From() {
-        return this._from;
+
+    _From: SqlColumn;
+    _To: SqlColumn;
+    _Left: boolean;
+    _Right: boolean;
+
+    get From(): SqlColumn {
+        return this._From;
     }
-    set From(v) {
-        this._from = v;
+    set From(v: SqlColumn) {
+        this._From = v;
     }
-    get To() {
-        return this._to;
+    get To(): SqlColumn {
+        return this._To;
     }
-    set To(v) {
-        this._to = v;
+    set To(v: SqlColumn) {
+        this._To = v;
     }
-    using(sqlColumn) {
+    get Left(): boolean {
+        return this._Left;
+    }
+    set Left(v: boolean) {
+        this._Left = v;
+    }
+    get Right(): boolean {
+        return this._Right;
+    }
+    set Right(v: boolean) {
+        this._Right = v;
+    }
+    using(sqlColumn: SqlColumn) {
         if (!(sqlColumn instanceof SqlColumn)) {
             throw { location: 'SqlJoin::using', message: 'trying to join on something not a SqlColumn' }; //eslint-disable-line
         }

@@ -1,53 +1,85 @@
+// @flow
 import './string.js';
 
 import SqlOrder from './sql-order';
+import SqlQuery from './sql-query';
 import SqlTable from './sql-table';
 import SqlWhere from './sql-where';
 import { processArgs } from './helpers';
 
 class SqlAggregate {
-    constructor(table, column, operation) {
-        this.table = table;
-        this.column = column;
-        this.operation = operation;
-        this.column.Alias = `${this.column.Alias || this.column.ColumnName}_${operation.toLowerCase()}`;
+    constructor(table: SqlTable, column: SqlColumn, operation: string) {
+        this._Table = table;
+        this._Column = column;
+        this._Operation = operation;
+        this._Column.Alias = `${this._Column.Alias || this._Column.ColumnName}_${operation.toLowerCase()}`;
     }
-    on(sqlColumn) {
-        this.groupBy = sqlColumn;
-        return this.column;
+    on(sqlColumn: SqlColumn) {
+        this._GroupBy = sqlColumn;
+        return this._Column;
     }
-    by(sqlColumn) {
+    by(sqlColumn: SqlColumn) {
         return this.on(sqlColumn);
     }
+    get Column(): SqlColumn {
+        return this._Column;
+    }
+    get Table(): SqlTable {
+        return this._Table;
+    }
+    get Operation(): string {
+        return this._Operation;
+    }
+    get GroupBy(): SqlColumn {
+        return this._GroupBy;
+    }
+    _Column: SqlColumn;
+    _Table: SqlTable;
+    _Operation: string;
+    _GroupBy: SqlColumn;
 }
+type SqlLiteral = {
+    Literal: string,
+    Alias: string,
+};
 export default class SqlColumn {
-    constructor(sqlObject, columnName, literal) {
+    constructor(sqlObject: SqlColumn | SqlTable | SqlLiteral, columnName: ?string, literal: ?string) {
+        // $FlowFixMe
         if (!new.target) {
             return new SqlColumn(sqlObject, columnName, literal);
         }
         if (sqlObject instanceof SqlColumn) {
-            this.Table = sqlObject.Table;
-            this.ColumnName = sqlObject.ColumnName;
-            this.Literal = sqlObject.Literal;
-            this.Alias = sqlObject.Alias;
-            this.Not = sqlObject.Not;
-            this.Values = sqlObject.Values;
-            this.Aggregate = sqlObject.Aggregate;
-            this._grouped = sqlObject._grouped;
-        } else if (sqlObject != null && sqlObject.Literal) {
-            this.Literal = sqlObject.Literal;
-            this.Alias = sqlObject.Alias;
+            this._Table = sqlObject._Table;
+            this._ColumnName = sqlObject._ColumnName;
+            this._Literal = sqlObject._Literal;
+            this._Alias = sqlObject._Alias;
+            this._Not = sqlObject._Not;
+            this._Values = sqlObject._Values;
+            this._Aggregate = sqlObject._Aggregate;
+            this._Grouped = sqlObject._Grouped;
+        } else if (sqlObject != null && sqlObject.Literal && !(sqlObject instanceof SqlTable)) {
+            this._Literal = (((sqlObject: any).Literal): string);
+            this._Alias = sqlObject.Alias;
         } else if (sqlObject != null && !(sqlObject instanceof SqlTable)) {
             throw { location: 'SqlColumn::constructor', message: 'must construct using a SqlTable' }; // eslint-disable-line no-throw-literal
         } else {
-            this.Table = sqlObject;
-            this.ColumnName = columnName;
-            this.Literal = literal;
-            this.Alias = columnName ? columnName.toCamel() : undefined; // eslint-disable-line no-undefined
+            this._Table = sqlObject;
+            this._ColumnName = columnName || '';
+            this._Literal = literal;
+            this._Alias = columnName ? (columnName: any).toCamel() : undefined; // eslint-disable-line no-undefined
         }
     }
+    _Table: SqlTable;
+    _ColumnName: string;
+    _Literal: ?string;
+    _Alias: ?string;
+    _Not: boolean;
+    _Values: any;
+    _Aggregate: SqlAggregate;
+    _Grouped: boolean;
+
     // aggregate functions
-    aggregate(op) {
+    aggregate(op: string): SqlAggregate {
         const column = new SqlColumn(this);
         column.Aggregate = new SqlAggregate(column.table, column, op);
         return column.Aggregate;
@@ -91,139 +123,149 @@ export default class SqlColumn {
         return this.aggregate('VARP');
     }
 
-    qualifiedName(sqlQuery) {
-        return this.Literal || `${this.Table.Alias.sqlEscape(sqlQuery, 'table-alias')}.${this.ColumnName}`;
+    qualifiedName(sqlQuery: SqlQuery) {
+        return this.Literal || `${(this.Table.Alias: any).sqlEscape(sqlQuery, 'table-alias')}.${this.ColumnName}`;
     }
-    as(alias) {
+    // `
+    as(alias: string): SqlColumn {
         const col = new SqlColumn(this);
         col.Alias = alias;
         return col;
     }
-    using(values) {
+    using(values: any): SqlColumn {
         const col = new SqlColumn(this);
         col.Values = values;
         return col;
     }
-    groupBy() {
+    groupBy(): SqlColumn {
         const col = new SqlColumn(this);
-        col._grouped = true;
+        col._Grouped = true;
         return col;
     }
-    get Table() {
-        return this._table;
+    get Aggregate(): SqlAggregate {
+        return this._Aggregate;
     }
-    set Table(v) {
-        this._table = v;
+    set Aggregate(v: SqlAggregate) {
+        this._Aggregate = v;
     }
-    get ColumnName() {
-        return this._columnName;
+    get Table(): SqlTable {
+        return this._Table;
     }
-    set ColumnName(v) {
-        this._columnName = v;
+    set Table(v: SqlTable) {
+        this._Table = v;
     }
-    get Literal() {
-        return this._literal;
+    get TableName(): string {
+        return this._Table.TableName;
     }
-    set Literal(v) {
-        this._literal = v;
+    get ColumnName(): string {
+        return this._ColumnName;
     }
-    get Alias() {
-        return this._alias;
+    set ColumnName(v: string) {
+        this._ColumnName = v;
     }
-    set Alias(v) {
-        this._alias = v;
+    get Literal(): ?string {
+        return this._Literal;
     }
-    get Not() {
-        return this._not;
+    set Literal(v: string) {
+        this._Literal = v;
     }
-    set Not(v) {
-        this._not = v;
+    get Alias(): ?string {
+        return this._Alias;
     }
-    get Values() {
-        return this._values;
+    set Alias(v: string) {
+        this._Alias = v;
     }
-    set Values(v) {
-        this._values = v;
+    get Not(): boolean {
+        return this._Not;
     }
-    get Grouped() {
-        return this._grouped;
+    set Not(v: boolean) {
+        this._Not = v;
     }
-    set Grouped(v) {
-        this._grouped = v;
+    get Values(): any {
+        return this._Values;
     }
-    eq(val) {
+    set Values(v: any) {
+        this._Values = v;
+    }
+    get Grouped(): boolean {
+        return this._Grouped;
+    }
+    set Grouped(v: boolean) {
+        this._Grouped = v;
+    }
+    eq(val: any): SqlWhere {
         return new SqlWhere({ Column: this, Op: '=', Value: val });
     }
-    ne(val) {
+    ne(val: any): SqlWhere {
         return new SqlWhere({ Column: this, Op: '<>', Value: val });
     }
-    gt(val) {
+    gt(val: any): SqlWhere {
         return new SqlWhere({ Column: this, Op: '>', Value: val });
     }
-    gte(val) {
+    gte(val: any): SqlWhere {
         return new SqlWhere({ Column: this, Op: '>=', Value: val });
     }
-    lt(val) {
+    lt(val: any): SqlWhere {
         return new SqlWhere({ Column: this, Op: '<', Value: val });
     }
-    isNull() {
+    isNull(): SqlWhere {
         return new SqlWhere({ Column: this, Op: 'IS NULL' });
     }
-    isNotNull() {
+    isNotNull(): SqlWhere {
         return new SqlWhere({ Column: this, Op: 'IS NOT NULL' });
     }
-    lte(val) {
+    lte(val: any): SqlWhere {
         return new SqlWhere({ Column: this, Op: '<=', Value: val });
     }
-    like(val) {
+    like(val: string): SqlWhere {
         let value = val;
         if (typeof value === 'string') {
             value = `%${value}%`;
         }
         return new SqlWhere({ Column: this, Op: 'like', Value: value });
     }
-    starts(val) {
+    starts(val: string): SqlWhere {
         let value = val;
         if (typeof value === 'string') {
             value = `${value}%`;
         }
         return new SqlWhere({ Column: this, Op: 'like', Value: value });
     }
-    ends(val) {
+    ends(val: string): SqlWhere {
         let value = val;
         if (typeof value === 'string') {
             value = `%${value}`;
         }
         return new SqlWhere({ Column: this, Op: 'like', Value: value });
     }
-    in(...args) {
+    in(...args: Array<any>): SqlWhere {
         const values = [];
         processArgs((v) => { values.push(v); }, ...args); // eslint-disable-line brace-style
         return new SqlWhere({ Column: this, Op: 'in', Value: values });
     }
-    between(val1, val2) {
+    between(val1: any, val2: any): SqlWhere {
         return this.gte(val1).and(this.lte(val2));
     }
-    op(op, val1, val2) {
+    op(op: string, val1: any, val2: any): SqlWhere {
         let o = op;
-        if (!this[o]) {
+        if (!(this: any)[o]) {
             o = o.toLowerCase();
         }
-        return this[o](val1, val2);
+        return (this: any)[o](val1, val2);
     }
-    asc() {
+    asc(): SqlOrder {
         return new SqlOrder(this, 'ASC');
     }
-    desc() {
+    desc(): SqlOrder {
         return new SqlOrder(this, 'DESC');
     }
-    direction(dir) {
+    direction(dir: 'ASC' | 'DESC'): SqlOrder {
         return new SqlOrder(this, dir);
     }
-    dir(dir) {
+    dir(dir: 'ASC' | 'DESC'): SqlOrder {
         return new SqlOrder(this, dir);
     }
-    not() {
+    not(): SqlColumn {
         const col = new SqlColumn(this);
         col.Not = true;
         return col;

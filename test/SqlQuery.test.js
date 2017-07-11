@@ -43,7 +43,6 @@ describe('fluent sql tests', () => {
                 .select(ipBusiness.star()).from(ipBusiness);
 
             const cmd = query.genSql();
-            console.log(JSON.stringify(cmd, null, 2))
             expect(cmd.countSql).to.equal(undefined);
             expect(Object.keys(cmd.values).length).to.equal(0);
             const columns = getBusinessCols('b');

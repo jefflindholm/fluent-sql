@@ -3,8 +3,13 @@ import './string.js';
 import { SqlError } from './helpers';
 import SqlColumn from './sql-column';
 
+type BasicWhere = {
+    Column: SqlColumn,
+    Op: string,
+    Value?: any,
+}
 export default class SqlWhere {
-    constructor(details: ?SqlWhere) {
+    constructor(details?: SqlWhere | BasicWhere | null) {
         // $FlowFixMe
         if (!new.target) {
             return new SqlWhere(details);

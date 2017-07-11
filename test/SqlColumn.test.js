@@ -57,7 +57,7 @@ describe('fluent sql tests', () => {
         });
         describe('literal tests', () => {
             it('should not have a column name', () => {
-                expect(literal.ColumnName).to.equal(null);
+                expect(literal.ColumnName).to.equal('');
             });
             it('should have an alias', () => {
                 expect(literal.Alias).to.equal('foo');

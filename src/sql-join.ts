@@ -12,18 +12,21 @@ export default class SqlJoin {
         }
         this.From = sqlColumn;
     }
-    get From() {
-        return this._from;
-    }
-    set From(v) {
-        this._from = v;
-    }
-    get To() {
-        return this._to;
-    }
-    set To(v) {
-        this._to = v;
-    }
+    _From: SqlColumn;
+    _To: SqlColumn;
+    _Left: boolean;
+    _Right: boolean;
+
+    /* eslint-disable brace-style */
+    get From() { return this._From; }
+    set From(v) { this._From = v; }
+    get To() { return this._To; }
+    set To(v) { this._To = v; }
+    get Right() { return this._Right; }
+    set Right(v) { this._Right = true; }
+    get Left() { return this._Left; }
+    set Left(v) { this._Left = v; }
+    /* eslint-enable brace-style */
     using(sqlColumn) {
         if (!(sqlColumn instanceof SqlColumn)) {
             throw { location: 'SqlJoin::using', message: 'trying to join on something not a SqlColumn' }; //eslint-disable-line

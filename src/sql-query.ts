@@ -4,20 +4,34 @@ import SqlColumn from './sql-column';
 import SqlJoin from './sql-join';
 import SqlOrder from './sql-order';
 import SqlTable from './sql-table';
-// import SqlWhere from './sql-where';
+import SqlWhere from './sql-where';
 import { processArgs } from './helpers';
 
-let defaultOptions = {
+class SqlObject {
+    fetchSql: string;
+    countSql: string;
+    values: any;
+    hasEncrypted: boolean;
+}
+type Escapes = 'table-alias' | 'column-alias';
+type SqlOptions = {
+    sqlStartChar: string,
+    sqlEndChar: string,
+    escapeLevel: Array<Escapes>,
+    namedValues: boolean,
+    namedValueMarker: string,
+}
+let defaultOptions: SqlOptions = {
     sqlStartChar: '[',
     sqlEndChar: ']',
     escapeLevel: ['table-alias', 'column-alias'],
     namedValues: true,
     namedValueMarker: ':',
 };
-export function setDefaultOptions(options) {
-    defaultOptions = Object.assign({}, defaultOptions, options);
+export function setDefaultOptions(options: SqlOptions) {
+    defaultOptions = { ...defaultOptions, ...options };
 }
-export function getDefaultOptions() {
+export function getDefaultOptions(): SqlOptions {
     return defaultOptions;
 }
 /*
@@ -35,15 +49,15 @@ export function getDefaultOptions() {
  *                                  - default is ':'
  */
 export default class SqlQuery {
-    constructor(options) {
+    constructor(options: SqlQuery | SqlOptions | null = null) {
         if (!new.target) {
             return new SqlQuery(options);
         }
 
         if (options instanceof SqlQuery) {
-            this.options = options.options;
+            this.Options = options.Options;
         } else {
-            this.options = Object.assign({}, defaultOptions, options);
+            this.Options = { ...defaultOptions, ...options};
         }
 
         this.Columns = [];
@@ -53,7 +67,7 @@ export default class SqlQuery {
         this.OrderBy = [];
         this.GroupBy = [];
         this.Having = [];
-        this.variableCount = 0;
+        this.VariableCount = 0;
 
         /**
          * @return {string}
@@ -86,12 +100,12 @@ export default class SqlQuery {
                         } else {
                             let data;
                             piece = `${where.Column.qualifiedName(this)} ${where.Op}`;
-                            if ( !this.options.namedValues ) {
+                            if ( !this.Options.namedValues ) {
                                 data = where.Value;
                                 piece += ' ? ';
                             } else {
-                                const varName = where.Column.ColumnName + this.variableCount++;
-                                piece += ` (${this.options.namedValueMarker}${varName})`;
+                                const varName = where.Column.ColumnName + (this.VariableCount+=1);
+                                piece += ` (${this.Options.namedValueMarker}${varName})`;
                                 data = {};
                                 data[varName] = where.Value;
                             }
@@ -114,36 +128,57 @@ export default class SqlQuery {
             return sql;
         };
     }
+    BuildWherePart: (w: Array<SqlWhere>, v: Array<any>, c: string) => string;
+    _Columns: Array<SqlColumn>;
+    _From: Array<SqlTable>;
+    _Joins: Array<SqlJoin>;
+    _Wheres: Array<SqlWhere>;
+    _OrderBy: Array<SqlOrder>;
+    _Having: Array<SqlWhere>;
+    _GroupBy: Array<SqlColumn>;
+    _VariableCount: number;
+    _Options: SqlOptions;
+    _PageNo: number;
+    _PageSize: number;
+    _Top: number;
+    _Distinct: boolean;
     /* eslint-disable brace-style */
-    get Columns() { return this._columns; }
-    set Columns(v) { this._columns = v; }
-    get From() { return this._from; }
-    set From(v) { this._from = v; }
-    get Joins() { return this._joins; }
-    set Joins(v) { this._joins = v; }
-    get Wheres() { return this._wheres; }
-    set Wheres(v) { this._wheres = v; }
-    get OrderBy() { return this._orderBy; }
-    set OrderBy(v) { this._orderBy = v; }
-    get Having() { return this._having; }
-    set Having(v) { this._having = v; }
+    get Columns() { return this._Columns; }
+    set Columns(v) { this._Columns = v; }
+    get From() { return this._From; }
+    set From(v) { this._From = v; }
+    get Joins() { return this._Joins; }
+    set Joins(v) { this._Joins = v; }
+    get Wheres() { return this._Wheres; }
+    set Wheres(v) { this._Wheres = v; }
+    get OrderBy() { return this._OrderBy; }
+    set OrderBy(v) { this._OrderBy = v; }
+    get Having() { return this._Having; }
+    set Having(v) { this._Having = v; }
+    get GroupBy() { return this._GroupBy; }
+    set GroupBy(v) { this._GroupBy = v; }
+    get VariableCount() { return this._VariableCount; }
+    set VariableCount(v) { this._VariableCount = v; }
+    get Options() { return this._Options; }
+    set Options(v) { this._Options = v; }
+    get Distinct() { return this._Distinct; }
     /* eslint-enable brace-style */
     sqlEscape = (str, level) => {
-        if ((level && this.options.escapeLevel.indexOf(level) > -1) || !level) {
-            return this.options.sqlStartChar + str + this.options.sqlEndChar;
+        if ((level && this.Options.escapeLevel.indexOf(level) > -1) || !level) {
+            return this.Options.sqlStartChar + str + this.Options.sqlEndChar;
         }
         return str;
     };
     page = (page) => {
-        this.pageNo = page;
+        this._PageNo = page;
         return this;
     };
     pageSize = (pageSize) => {
-        this.itemsPerPage = pageSize;
+        this._PageSize = pageSize;
         return this;
     };
     top = (val) => {
-        this.topCount = val;
+        this._Top = val;
         return this;
     };
     addColumns = (...args) => {
@@ -189,7 +224,7 @@ export default class SqlQuery {
                             message: 'defaultSqlTable is not an instance of SqlTable',
                         };
                     }
-                    this.orderBy((new SqlColumn(table, col)).dir(dir));
+                    this.orderBy((new SqlColumn(table, col, null)).dir(dir));
                 }
             });
         }
@@ -199,10 +234,10 @@ export default class SqlQuery {
         const query = args[0];
         if (query.Columns) {
             query.Columns.forEach( (c) => {
-                this.Columns.push(new SqlColumn(c));
+                this.Columns.push(new SqlColumn(c, null, null));
             });
         } else {
-            processArgs(a => { this.Columns.push(new SqlColumn(a)); }, ...args); // eslint-disable-line brace-style
+            processArgs(a => { this.Columns.push(new SqlColumn(a, null, null)); }, ...args); // eslint-disable-line brace-style
         }
         return this;
     };
@@ -228,6 +263,7 @@ export default class SqlQuery {
         joinClause.Right = true; // eslint-disable-line no-param-reassign
         return this.join(joinClause);
     };
+
     where = (whereClause) => {
         this.Wheres.push(whereClause);
         return this;
@@ -237,11 +273,11 @@ export default class SqlQuery {
         return this;
     };
     orderBy = (...args) => {
-        processArgs(v => { this.OrderBy.push(new SqlOrder(v)); }, ...args); // eslint-disable-line brace-style
+        processArgs(v => { this.OrderBy.push(new SqlOrder(v, null)); }, ...args); // eslint-disable-line brace-style
         return this;
     };
     distinct = () => {
-        this.Distinct = true;
+        this._Distinct = true;
         return this;
     };
     removeColumn = (sqlColumn) => {
@@ -276,7 +312,7 @@ export default class SqlQuery {
             throw { location: 'toSql', message: 'No FROM in query' }; // eslint-disable-line
         }
 
-        const sql = {};
+        const sql = new SqlObject();
         const values = [];
         const groupBy = [];
         let columns = '';
@@ -285,7 +321,7 @@ export default class SqlQuery {
         let hasEncrypted = false;
         this.Columns.forEach((c, idx) => {
             if (c.Literal) {
-                columns += `${(idx > 0 ? ',' : '')}\n(${c.Literal}) as ${c.Alias.sqlEscape(this, 'column-alias')}`;
+                columns += `${(idx > 0 ? ',' : '')}\n(${c.Literal}) as ${(c.Alias as any).sqlEscape(this, 'column-alias')}`;
                 // handle any columns that might have values
                 if (c.Values) {
                     for (const attr in c.Values) {
@@ -303,9 +339,9 @@ export default class SqlQuery {
                 let literal = decryptFunction ? decryptFunction(c, true) : null;
                 hasEncrypted = literal !== null;
                 literal = literal || c.qualifiedName(this);
-                columns += `${(idx > 0 ? ',' : '')}\n${c.Aggregate.operation}(${literal}) as ${c.Alias.sqlEscape(this, 'column-alias')}`;
-                if (c.Aggregate.groupBy) {
-                    groupBy.push(c.Aggregate.groupBy.qualifiedName(this));
+                columns += `${(idx > 0 ? ',' : '')}\n${c.Aggregate.Operation}(${literal}) as ${(c.Alias as any).sqlEscape(this, 'column-alias')}`;
+                if (c.Aggregate.GroupBy) {
+                    groupBy.push(c.Aggregate.GroupBy.qualifiedName(this));
                 }
             } else {
                 let literal = decryptFunction ? decryptFunction(c, true) : null;
@@ -315,10 +351,10 @@ export default class SqlQuery {
                     literal = maskFunction(c, literal) || literal;
                 }
 
-                columns += `${(idx > 0 ? ',' : '')}\n${literal} as ${c.Alias.sqlEscape(this, 'column-alias')}`;
+                columns += `${(idx > 0 ? ',' : '')}\n${literal} as ${(c.Alias as any).sqlEscape(this, 'column-alias')}`;
 
                 if (!orderString) {
-                    orderString = c.Alias.sqlEscape(this, 'column-alias');
+                    orderString = (c.Alias as any).sqlEscape(this, 'column-alias');
                 }
 
                 if ( c.Grouped ) {
@@ -328,15 +364,15 @@ export default class SqlQuery {
         }, this);
         let from = '';
         this.From.forEach((f, idx) => {
-            from += `${(idx > 0 ? ',' : '')}\n${f.getTable()} as ${f.Alias.sqlEscape(this, 'table-alias')}`;
+            from += `${(idx > 0 ? ',' : '')}\n${f.getTable()} as ${(f.Alias as any).sqlEscape(this, 'table-alias')}`;
         }, this);
         let join = '';
         this.Joins.forEach((j) => {
             const type = j.Left ? 'LEFT ' : (j.Right ? 'RIGHT ' : ''); // eslint-disable-line no-nested-ternary
             const from = j.From.Table.getTable();
-            const alias = j.From.Table.Alias.sqlEscape(this, 'table-alias');
+            const alias = (j.From.Table.Alias as any).sqlEscape(this, 'table-alias');
             const fromCol = j.From.ColumnName;
-            const to = j.To.Table.Alias.sqlEscape(this, 'table-alias');
+            const to = (j.To.Table.Alias as any).sqlEscape(this, 'table-alias');
             const toCol = j.To.ColumnName;
             join += `\n${type}JOIN ${from} as ${alias} on ${alias}.${fromCol} = ${to}.${toCol}`
         }, this);
@@ -345,7 +381,7 @@ export default class SqlQuery {
 
         const having = this.BuildWherePart(this.Having, values, 'and');
 
-        const top = (this.topCount ? ` TOP ${this.topCount}` : '');
+        const top = (this._Top ? ` TOP ${this._Top}` : '');
         let select = `SELECT${top}${(this.Distinct ? ' DISTINCT' : '')}${columns}\nFROM${from}${join}`;
 
         if (where && where !== '') {
@@ -358,8 +394,8 @@ export default class SqlQuery {
             select += `\nHAVING ${having}`;
         }
 
-        let page = this.pageNo;
-        let pageSize = this.itemsPerPage;
+        let page = this._PageNo;
+        let pageSize = this._PageSize;
 
         if (page && !pageSize) {
             pageSize = 50;
@@ -376,7 +412,7 @@ export default class SqlQuery {
                 this.OrderBy.forEach( (o, idx) => {
                     // since we know we are going to be ordering over a select, we don't need a table
                     // in this, just use the column alias
-                    order += `${(idx > 0 ? ',' : '')}${o.Column.Alias.sqlEscape(this, 'column-alias')} ${o.Direction}`;
+                    order += `${(idx > 0 ? ',' : '')}${(o.Column.Alias as any).sqlEscape(this, 'column-alias')} ${o.Direction}`;
                 }, this);
                 orderString = order;
             }
@@ -396,7 +432,7 @@ export default class SqlQuery {
         sql.fetchSql = fetchSql;
         sql.countSql = countSql;
         sql.hasEncrypted = hasEncrypted;
-        if ( !this.options.namedValues ) {
+        if ( !this.Options.namedValues ) {
             sql.values = values;
         } else {
             sql.values = {};

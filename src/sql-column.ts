@@ -7,21 +7,37 @@ import { processArgs } from './helpers';
 
 class SqlAggregate {
     constructor(table, column, operation) {
-        this.table = table;
-        this.column = column;
-        this.operation = operation;
-        this.column.Alias = `${this.column.Alias || this.column.ColumnName}_${operation.toLowerCase()}`;
+        this.Table = table;
+        this.Column = column;
+        this.Operation = operation;
+        this.Column.Alias = `${this.Column.Alias || this.Column.ColumnName}_${operation.toLowerCase()}`;
     }
     on(sqlColumn) {
-        this.groupBy = sqlColumn;
-        return this.column;
+        this.GroupBy = sqlColumn;
+        return this.Column;
     }
     by(sqlColumn) {
         return this.on(sqlColumn);
     }
+    _Table: SqlTable;
+    _Column: SqlColumn;
+    _Operation: string;
+    _GroupBy: SqlColumn;
+    /* eslint-disable brace-style */
+    get Table() { return this._Table; }
+    set Table(v) { this._Table = v; }
+    get Column() { return this._Column; }
+    set Column(v) { this._Column = v; }
+    get Operation() { return this._Operation; }
+    set Operation(v) { this._Operation = v; }
+    get GroupBy() { return this._GroupBy; }
+    set GroupBy(v) { this._GroupBy = v; }
+    /* eslint-enable brace-style */
+
+
 }
 export default class SqlColumn {
-    constructor(sqlObject, columnName, literal) {
+    constructor(sqlObject, columnName = null, literal = null) {
         if (!new.target) {
             return new SqlColumn(sqlObject, columnName, literal);
         }
@@ -33,7 +49,7 @@ export default class SqlColumn {
             this.Not = sqlObject.Not;
             this.Values = sqlObject.Values;
             this.Aggregate = sqlObject.Aggregate;
-            this._grouped = sqlObject._grouped;
+            this.Grouped = sqlObject.Grouped;
         } else if (sqlObject != null && sqlObject.Literal) {
             this.Literal = sqlObject.Literal;
             this.Alias = sqlObject.Alias;
@@ -48,8 +64,8 @@ export default class SqlColumn {
     }
     // aggregate functions
     aggregate(op) {
-        const column = new SqlColumn(this);
-        column.Aggregate = new SqlAggregate(column.table, column, op);
+        const column = new SqlColumn(this, null, null);
+        column.Aggregate = new SqlAggregate(column.Table, column, op);
         return column.Aggregate;
     }
     avg() {
@@ -92,7 +108,7 @@ export default class SqlColumn {
     }
 
     qualifiedName(sqlQuery) {
-        return this.Literal || `${this.Table.Alias.sqlEscape(sqlQuery, 'table-alias')}.${this.ColumnName}`;
+        return this.Literal || `${(this.Table.Alias as any).sqlEscape(sqlQuery, 'table-alias')}.${this.ColumnName}`;
     }
     as(alias) {
         const col = new SqlColumn(this);
@@ -106,51 +122,38 @@ export default class SqlColumn {
     }
     groupBy() {
         const col = new SqlColumn(this);
-        col._grouped = true;
+        col.Grouped = true;
         return col;
     }
-    get Table() {
-        return this._table;
-    }
-    set Table(v) {
-        this._table = v;
-    }
-    get ColumnName() {
-        return this._columnName;
-    }
-    set ColumnName(v) {
-        this._columnName = v;
-    }
-    get Literal() {
-        return this._literal;
-    }
-    set Literal(v) {
-        this._literal = v;
-    }
-    get Alias() {
-        return this._alias;
-    }
-    set Alias(v) {
-        this._alias = v;
-    }
-    get Not() {
-        return this._not;
-    }
-    set Not(v) {
-        this._not = v;
-    }
-    get Values() {
-        return this._values;
-    }
-    set Values(v) {
-        this._values = v;
-    }
-    get Grouped() {
-        return this._grouped;
-    }
-    set Grouped(v) {
-        this._grouped = v;
-    }
+
+    _Table: SqlTable;
+    _ColumnName: string;
+    _Literal: string;
+    _Alias: string;
+    _Not: boolean;
+    _Values: Array<any>;
+    _Grouped: boolean;
+    _Aggregate: SqlAggregate;
+    /* eslint-disable brace-style */
+    get Aggregate() { return this._Aggregate; }
+    set Aggregate(v) { this._Aggregate = v; }
+    get Table() { return this._Table; }
+    set Table(v) { this._Table = v; }
+    get TableName() { return this._Table.TableName; }
+    get ColumnName() { return this._ColumnName; }
+    set ColumnName(v) { this._ColumnName = v; }
+    get Literal() { return this._Literal; }
+    set Literal(v) { this._Literal = v; }
+    get Alias() { return this._Alias; }
+    set Alias(v) { this._Alias = v; }
+    get Not() { return this._Not; }
+    set Not(v) { this._Not = v; }
+    get Values() { return this._Values; }
+    set Values(v) { this._Values = v; }
+    get Grouped() { return this._Grouped; }
+    set Grouped(v) { this._Grouped = v; }
+    /* eslint-disable brace-style */
+
     eq(val) {
         return new SqlWhere({ Column: this, Op: '=', Value: val });
     }
@@ -224,7 +227,7 @@ export default class SqlColumn {
         return new SqlOrder(this, dir);
     }
     not() {
-        const col = new SqlColumn(this);
+        const col = new SqlColumn(this, null, null);
         col.Not = true;
         return col;
     }

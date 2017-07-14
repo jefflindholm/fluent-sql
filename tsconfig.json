@@ -1,0 +1,17 @@
+{
+    "files": [
+        "src/sql-builder.ts",
+        "src/sql-column.ts",
+        "src/sql-join.ts",
+        "src/sql-order.ts",
+        "src/sql-query.ts",
+        "src/sql-table.ts",
+        "src/sql-where.ts"
+    ],
+    "compilerOptions": {
+        "sourceMap": true,
+        "outDir": "dist",
+        "target": "es5",
+        "allowJs": true
+    }
+}

@@ -2,6 +2,7 @@ import './string.js';
 
 import SqlColumn from './sql-column';
 
+type Directions = 'ASC' | 'DESC';
 export default class SqlOrder {
     constructor(sqlObject, dir) {
         if (!new.target) {
@@ -19,19 +20,13 @@ export default class SqlOrder {
         }
     }
 
-    get Column() {
-        return this._column;
-    }
+    _Column: SqlColumn;
+    _Direction: Directions;
 
-    set Column(v) {
-        this._column = v;
-    }
-
-    get Direction() {
-        return this._direction;
-    }
-
-    set Direction(v) {
-        this._direction = v;
-    }
+    /* eslint-disable brace-style */
+    get Column() { return this._Column; }
+    set Column(v) { this._Column = v; }
+    get Direction() { return this._Direction; }
+    set Direction(v) { this._Direction = v; }
+    /* eslint-enable brace-style */
 }

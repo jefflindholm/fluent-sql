@@ -42,15 +42,20 @@ export default class SqlTable {
             }, this);
         }
     }
+    _Schema: string;
+    _TableName: string;
+    _Alias: string;
+    _Columns: Array<SqlColumn>;
+
     /* eslint-disable brace-style */
-    get Schema() { return this._schema }
-    set Schema(v) { this._schema = v}
-    get TableName() { return this._tableName; }
-    set TableName(v) { this._tableName = v; }
-    get Alias() { return this._alias; }
-    set Alias(v) { this._alias = v; }
-    get Columns() { return this._columns; }
-    set Columns(v) { this._columns = v; }
+    get Schema() { return this._Schema }
+    set Schema(v) { this._Schema = v}
+    get TableName() { return this._TableName; }
+    set TableName(v) { this._TableName = v; }
+    get Alias() { return this._Alias; }
+    set Alias(v) { this._Alias = v; }
+    get Columns() { return this._Columns; }
+    set Columns(v) { this._Columns = v; }
     /* eslint-enable */
 
     getTable() {
@@ -68,17 +73,17 @@ export default class SqlTable {
         return table;
     }
     join(joinClause) {
-        const query = new SqlQuery();
+        const query = new SqlQuery(null);
         query.join(joinClause);
         return query;
     }
     left(joinClause) {
-        const query = new SqlQuery();
+        const query = new SqlQuery(null);
         query.left(joinClause);
         return query;
     }
     right(joinClause) {
-        const query = new SqlQuery();
+        const query = new SqlQuery(null);
         query.right(joinClause);
         return query;
     }
@@ -89,7 +94,7 @@ export default class SqlTable {
         return new SqlJoin(sqlColumn);
     }
     where(whereClause) {
-        const query = new SqlQuery();
+        const query = new SqlQuery(null);
         query.where(whereClause);
         return query;
     }

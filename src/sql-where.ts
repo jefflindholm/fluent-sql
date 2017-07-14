@@ -1,8 +1,9 @@
 import './string.js';
 import { SqlError } from './helpers';
+import SqlColumn from './sql-column';
 
 export default class SqlWhere {
-    constructor(details) {
+    constructor(details = null) {
         if (!new.target) {
             return new SqlWhere(details);
         }
@@ -15,7 +16,7 @@ export default class SqlWhere {
         this.add = function (whereClause) {
             let result = this;
             if (this.Column != null) {
-                result = new SqlWhere();
+                result = new SqlWhere(null);
                 result.type = this.type;
                 this.type = null;
                 result.Wheres.push(this);
@@ -24,7 +25,12 @@ export default class SqlWhere {
             return result;
         };
     }
-
+    add: (SqlWhere) => SqlWhere;
+    _Wheres: Array<SqlWhere>;
+    _Column: SqlColumn;
+    _Op: string;
+    _Value: any;
+    _Type: 'and' | 'or';
     get Wheres() {
         return this._Wheres;
     }
@@ -42,7 +48,7 @@ export default class SqlWhere {
     }
 
     get type() {
-        return this._type;
+        return this._Type;
     }
 
     set Wheres(v) {
@@ -62,7 +68,7 @@ export default class SqlWhere {
     }
 
     set type(v) {
-        this._type = v;
+        this._Type = v;
     }
 
     or(whereClause) {

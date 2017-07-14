@@ -34,6 +34,7 @@ function updateDelete(operation: 'update' | 'delete', sqlTable: SqlTable, detail
             data[variable] = details[attr];
             encrypted = (encryptFunction ? encryptFunction(column, variable) : null);
             variable = encrypted || `${options.namedValueMarker}${variable}`;
+
             if (encrypted != null) {
                 hasEncryptedValues = true;
             }

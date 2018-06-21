@@ -1,6 +1,6 @@
 {
   "name": "fluent-sql",
-  "version": "1.5.3",
+  "version": "2.0.0",
   "description": "Fluent SQL lib",
   "main": "dist/fluent-sql.js",
   "engine": {
@@ -17,8 +17,7 @@
     "prepublish": "npm run build",
     "test": "jest test/* --watch",
     "coverage": "jest test/* --coverage",
-    "test:single": "./node_modules/.bin/mocha --require babel-core/register",
-    "debug": "start node-inspector && mocha --debug-brk  --require babel-core/register --reporter spec",
+    "test:single": "jest test/*",
     "semantic-release": "semantic-release pre && npm publish && semantic-release post",
     "lint": "eslint src/*.js"
   },

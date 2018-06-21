@@ -46,12 +46,12 @@ describe('fluent sql tests', () => {
 
     describe('SqlJoin tests', () => {
         it('should throw error if it is not constructed from a SqlColumn', () => {
-            expect(SqlJoin.bind(null, {})).to.throw({ location: 'SqlJoin::constructor', message: 'trying to join on something not a SqlColumn'});
+            expect(SqlJoin.bind(null, {})).toThrow({ location: 'SqlJoin::constructor', message: 'trying to join on something not a SqlColumn'});
 
         });
         it('should throw error if it is not linked via using with a SqlColumn', () => {
             const join = business.on(business.id);
-            expect(join.using.bind(join, {})).to.throw({ location: 'SqlJoin::using', message: 'trying to join on something not a SqlColumn'});
+            expect(join.using.bind(join, {})).toThrow({ location: 'SqlJoin::using', message: 'trying to join on something not a SqlColumn'});
 
         });
     });

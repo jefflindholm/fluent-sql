@@ -95,34 +95,6 @@ function buildWhere(filterString, sqlTable) {
 }
 
 export default class SqlBuilder {
-    /*
-     * @depreicated
-     */
-    constructor() {
-            console.log('SqlBuilder object is deprecated, please use static SqlBuilder methods directly');
-        }
-        /*
-         * @depreicated
-         */
-    update(sqlTable, details, encryptFunction) {
-            console.log('update from a SqlBuilder object is deprecated, please use static SqlBuilder.update');
-            return SqlBuilder.update(sqlTable, details, encryptFunction);
-        }
-        /*
-         * @depreicated
-         */
-    insert(sqlTable, details, newId, encryptFunction) {
-            console.log('insert from a SqlBuilder object is deprecated, please use static SqlBuilder.insert');
-            return SqlBuilder.insert(sqlTable, details, newId, encryptFunction);
-        }
-        /*
-         * @param {sqlTable} - SqlTable instance for the table to build the update for
-         * @param {details} - object with columns and values
-         * @param {encryptFunction} - function(SqlColumn, variableName) - where SqlColumn is the instance of the column from the table
-         *                              being updated, variableName is the sql replacement name (ie. businessName1)
-         *                              should return null if not encrypted
-         * @return { sql, values, hasEncrypted }
-         */
     static update(sqlTable, details, encryptFunction) {
         return updateDelete('update', sqlTable, details, encryptFunction);
     }

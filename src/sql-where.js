@@ -67,7 +67,7 @@ export default class SqlWhere {
 
     or(whereClause) {
         if (this.type && this.type !== 'or') {
-            throw new SqlError('SqlWhere::or', 'cannot add \'or\' to \'and\' group');
+            throw new SqlError('SqlWhere::or', "cannot add 'or' to 'and' group");
         }
         this.type = 'or';
         return this.add(whereClause);
@@ -75,7 +75,7 @@ export default class SqlWhere {
 
     and(whereClause) {
         if (this.type && this.type !== 'and') {
-            throw new SqlError('SqlWhere::and', 'cannot add \'and\' to \'or\' group');
+            throw new SqlError('SqlWhere::and', "cannot add 'and' to 'or' group");
         }
         this.type = 'and';
         return this.add(whereClause);

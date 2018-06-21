@@ -1,38 +1,45 @@
+function toCamel() {
+    return this.replace(/[\-_][a-z]/g, (m) => {
+        return m.toUpperCase().replace(/[\-_]/, '');
+    });
+};
+function trim()  {
+    return this.replace(/^\s+|\s+$/g, '');
+};
+function toDashCase()  {
+    let result = this.replace(/[A-Z]/g, (m) => {
+        return `-${m.toLowerCase()}`;
+    });
+    result = result.replace(/_/g, '-')
+    return (result[0] === '-') ? result.substring(1) : result;
+};
+function toSnakeCase()  {
+    let result = this.replace(/[A-Z]/g, (m) => {
+        return `_${m.toLowerCase()}`;
+    });
+    result = result.replace(/\-/g, '_')
+    return (result[0] === '_') ? result.substring(1) : result;
+};
+function capitalizeFirst()  {
+    return this.charAt(0).toUpperCase() + this.slice(1);
+};
+function toPascal()  {
+    return this.toCamel().capitalizeFirst();
+};
+function contains (s) {
+    return this.indexOf(s) > -1;
+};
+
 (function() {
     'use strict';
-
-    const stringFunctions = {};
-
-    stringFunctions.toCamel = function() {
-        return this.replace(/[\-_][a-z]/g, (m) => {
-            return m.toUpperCase().replace(/[\-_]/, '');
-        });
-    };
-    stringFunctions.trim = function()  {
-        return this.replace(/^\s+|\s+$/g, '');
-    };
-    stringFunctions.toDashCase = function()  {
-        let result = this.replace(/[A-Z]/g, (m) => {
-            return `-${m.toLowerCase()}`;
-        });
-        result = result.replace(/_/g, '-')
-        return (result[0] === '-') ? result.substring(1) : result;
-    };
-    stringFunctions.toSnakeCase = function()  {
-        let result = this.replace(/[A-Z]/g, (m) => {
-            return `_${m.toLowerCase()}`;
-        });
-        result = result.replace(/\-/g, '_')
-        return (result[0] === '_') ? result.substring(1) : result;
-    };
-    stringFunctions.capitalizeFirst = function()  {
-        return this.charAt(0).toUpperCase() + this.slice(1);
-    };
-    stringFunctions.toPascal = function()  {
-        return this.toCamel().capitalizeFirst();
-    };
-    stringFunctions.contains = function (s) {
-        return this.indexOf(s) > -1;
+    const stringFunctions = {
+        toCamel,
+        trim,
+        toDashCase,
+        toSnakeCase,
+        capitalizeFirst,
+        toPascal,
+        contains,
     };
 
     for (const key in stringFunctions) {
@@ -46,3 +53,13 @@
     }
 
 })();
+
+export default {
+    toCamel,
+    trim,
+    toDashCase,
+    toSnakeCase,
+    capitalizeFirst,
+    toPascal,
+    contains,
+};

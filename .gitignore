@@ -1,7 +1,7 @@
 node_modules/
 .idea/
-coverage
-coverage.html
+.vscode/
+coverage/
 code/
 *.map
 *-compiled.js

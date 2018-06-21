@@ -9,9 +9,9 @@ export function processArgs(func, ...args) {
         }
     }
 }
-export class SqlError extends Error {
+export class SqlError {
     constructor(loc, msg) {
-        super(msg);
+        // super(msg);
         this.location = loc;
         this.message = msg;
     }

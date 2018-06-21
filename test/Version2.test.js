@@ -7,7 +7,7 @@ import {SqlColumn} from '../src/fluent-sql.js';
 //import {SqlOrder} from '../src/fluent-sql.js';
 import {SqlJoin} from '../src/fluent-sql.js';
 import {SqlBuilder} from '../src/fluent-sql.js';
-import {setDefaultOptions, getDefaultOptions, postgresOptions } from '../src/fluent-sql.js';
+import {setDefaultOptions, getDefaultOptions, postgresOptions, sqlServerOptions } from '../src/fluent-sql.js';
 
 
 describe('version2 tests', () => {
@@ -63,6 +63,42 @@ describe('version2 tests', () => {
             +'\nORDER BY "business".id ASC'
             +'\nLIMIT 10');
             expect(sql.values[0]).toBe('%foo%');
+        });
+        it('should generate update with $#', () => {
+            setDefaultOptions(postgresOptions);
+            const update = SqlBuilder.update(business, { businessName: 'Test', id: 1});
+            expect(update).toMatchObject({
+                sql: 'UPDATE business SET business_name = $2 WHERE id = $1',
+                values: [ 1, 'Test' ],
+                hasEncrypted: false
+            });
+        });
+        it('should generate delete with $#', () => {
+
+            const del = SqlBuilder.delete(business, { businessName: 'Test', id: 1});
+            expect(del).toMatchObject({
+                sql: 'DELETE FROM business WHERE business_name = $2 AND id = $1',
+                values: [ 1, 'Test' ],
+                hasEncrypted: false
+            });
+        });
+        it('should generate insert with $#', () => {
+
+            const insert = SqlBuilder.insert(business, { businessName: 'Test', id: 1});
+            expect(insert).toMatchObject({
+                sql: 'INSERT INTO business (business_name) VALUES ($1)',
+                values: [ 'Test' ],
+                hasEncrypted: false
+            });
+        });
+        it('should generate insert with $# and new id', () => {
+
+            const insert = SqlBuilder.insert(business, { businessName: 'Test', id: 1}, 4000);
+            expect(insert).toMatchObject({
+                sql:  'INSERT INTO business (business_name, id) VALUES ($1, $2)',
+                values: [ 'Test', 4000 ],
+                hasEncrypted: false
+            });
         });
     });
 

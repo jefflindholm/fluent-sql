@@ -32,9 +32,15 @@ function updateDelete(operation, sqlTable, details, encryptFunction) {
         }; // eslint-disable-line
     }
     var options = (0, _sqlQuery.getDefaultOptions)();
-    var data = details.id ? {
-        id: details.id
-    } : {};
+    var isArray = !options.namedValues || options.markerType === 'number';
+    var data = isArray ? [] : {};
+    if (details.id) {
+        if (!isArray) {
+            data.id = details.id;
+        } else {
+            data.push(details.id);
+        }
+    }
     var sep = operation === 'update' ? ',' : ' AND ';
     var hasEncryptedValues = false;
     var item = 1;
@@ -47,8 +53,13 @@ function updateDelete(operation, sqlTable, details, encryptFunction) {
         // eslint-disable-line no-restricted-syntax
         if (details.hasOwnProperty(attr) && attr !== 'id' && sqlTable.hasOwnProperty(attr)) {
             column = sqlTable[attr];
-            variable = attr + item.toString();
-            data[variable] = details[attr];
+            if (isArray) {
+                variable = (item + 1).toString();
+                data.push(details[attr]);
+            } else {
+                variable = attr + item.toString();
+                data[variable] = details[attr];
+            }
             encrypted = encryptFunction ? encryptFunction(column, variable) : null;
             variable = encrypted || '' + options.namedValueMarker + variable;
             if (encrypted != null) {
@@ -60,10 +71,18 @@ function updateDelete(operation, sqlTable, details, encryptFunction) {
     }
     var sql = void 0;
     if (operation === 'update') {
-        sql = 'UPDATE ' + sqlTable.getTable() + ' SET ' + columns + ' WHERE id = ' + options.namedValueMarker + 'id';
+        if (isArray) {
+            sql = 'UPDATE ' + sqlTable.getTable() + ' SET ' + columns + ' WHERE id = ' + options.namedValueMarker + '1';
+        } else {
+            sql = 'UPDATE ' + sqlTable.getTable() + ' SET ' + columns + ' WHERE id = ' + options.namedValueMarker + 'id';
+        }
     } else if (operation === 'delete') {
         if (details.id) {
-            columns += (item === 1 ? '' : sep) + 'id = ' + options.namedValueMarker + 'id';
+            if (isArray) {
+                columns += (item === 1 ? '' : sep) + 'id = ' + options.namedValueMarker + '1';
+            } else {
+                columns += (item === 1 ? '' : sep) + 'id = ' + options.namedValueMarker + 'id';
+            }
         }
         sql = 'DELETE FROM ' + sqlTable.getTable() + ' WHERE ' + columns;
     } else {
@@ -138,8 +157,9 @@ var SqlBuilder = function () {
                 }; //eslint-disable-line
             }
             var options = (0, _sqlQuery.getDefaultOptions)();
+            var isArray = !options.namedValues || options.markerType === 'number';
             var item = 1;
-            var data = {};
+            var data = isArray ? [] : {};
             var variable = void 0;
             var encrypted = void 0;
             var column = void 0;
@@ -150,8 +170,13 @@ var SqlBuilder = function () {
                 // eslint-disable-line no-restricted-syntax
                 if (details.hasOwnProperty(attr) && attr !== 'id' && sqlTable.hasOwnProperty(attr)) {
                     column = sqlTable[attr];
-                    variable = attr + item.toString();
-                    data[variable] = details[attr];
+                    if (isArray) {
+                        variable = item.toString();
+                        data.push(details[attr]);
+                    } else {
+                        variable = attr + item.toString();
+                        data[variable] = details[attr];
+                    }
                     columnList += (item === 1 ? '' : ',') + attr.toSnakeCase();
                     encrypted = encryptFunction ? encryptFunction(column, variable) : null;
                     variable = encrypted || '' + options.namedValueMarker + variable;
@@ -164,8 +189,13 @@ var SqlBuilder = function () {
             }
             if (newId) {
                 columnList += ', id';
-                variableList += ', ' + options.namedValueMarker + 'id';
-                data.id = newId;
+                if (isArray) {
+                    variableList += ', ' + options.namedValueMarker + item;
+                    data.push(newId);
+                } else {
+                    variableList += ', ' + options.namedValueMarker + 'id';
+                    data.id = newId;
+                }
             }
 
             return {

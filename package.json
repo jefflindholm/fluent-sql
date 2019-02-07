@@ -12,14 +12,21 @@
     "@babel/core": "^7.2.2",
     "@babel/preset-env": "^7.3.1",
     "flatted": "^2.0.0",
-    "jest": "^24.1.0"
+    "jest": "^24.1.0",
+    "pre-commit": "^1.2.2",
+    "shx": "^0.3.2"
   },
   "scripts": {
     "build": "babel src --out-dir dist",
     "test": "jest test/* --watch",
     "test:single": "jest test/*",
-    "precommit": "npm run test:single && rm -rf dist"
+    "coverage": "jest test/* --coverage",
+    "clean:dist": "shx rm -rf dist"
   },
+  "precommit": [
+    "test:single",
+    "clean:dist"
+  ],
   "repository": {
     "type": "git",
     "url": "git+https://github.com/jefflindholm/fluent-sql.git"

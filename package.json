@@ -1,74 +1,34 @@
 {
   "name": "fluent-sql",
-  "version": "2.0.2",
+  "version": "2.1.0",
   "description": "Fluent SQL lib",
   "main": "dist/fluent-sql.js",
-  "engine": {
-    "node": ">= 7.0.0"
-  },
   "directories": {
     "test": "test"
   },
-  "scripts": {
-    "do-publish": "npm publish --registry=https://registry.npmjs.org",
-    "precommit": "npm run test:single && rm -rf dist",
-    "prebuild": "shx rm -rf dist && mkdir dist",
-    "build": "babel --presets env -d dist/ src/",
-    "prepublish": "npm run build",
-    "test": "jest test/* --watch",
-    "coverage": "jest test/* --coverage",
-    "test:single": "jest test/*",
-    "semantic-release": "semantic-release pre && npm publish && semantic-release post",
-    "lint": "eslint src/*.js"
-  },
+  "dependencies": {},
   "devDependencies": {
-    "babel": "^6.5.2",
-    "babel-cli": "^6.16.0",
-    "babel-core": "^6.17.0",
-    "babel-eslint": "^8.2.3",
-    "babel-jest": "^23.0.1",
-    "babel-loader": "^7.1.4",
-    "babel-plugin-transform-object-rest-spread": "^6.26.0",
-    "babel-preset-env": "^1.7.0",
-    "blanket": "^1.2.3",
-    "circular-json": "^0.5.4",
-    "cz-conventional-changelog": "^2.1.0",
-    "es5-shim": "^4.5.8",
-    "es6-shim": "^0.35.0",
-    "eslint": "^4.19.1",
-    "eslint-plugin-mocha": "^5.0.0",
-    "findup": "^0.1.5",
-    "husky": "^0.14.3",
-    "jest": "^23.1.0",
-    "semantic-release": "^15.5.5",
-    "shelljs": "^0.8.2",
-    "shx": "^0.3.0",
-    "sprintf-js": "^1.0.3",
-    "webpack": "^4.12.0"
+    "@babel/cli": "^7.2.3",
+    "@babel/core": "^7.2.2",
+    "@babel/preset-env": "^7.3.1",
+    "flatted": "^2.0.0",
+    "jest": "^24.1.0"
+  },
+  "scripts": {
+    "build": "babel src --out-dir dist",
+    "test": "jest test/* --watch",
+    "test:single": "jest test/*",
+    "precommit": "npm run test:single && rm -rf dist"
   },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/jefflindholm/fluent-sql.git"
   },
-  "keywords": [
-    "SQL",
-    "Fluent"
-  ],
-  "author": "Jeff Lindholm <jeff@lindholm.org>",
-  "license": "MIT",
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
   "bugs": {
     "url": "https://github.com/jefflindholm/fluent-sql/issues"
   },
-  "homepage": "https://github.com/jefflindholm/fluent-sql#readme",
-  "config": {
-    "blanket": {
-      "pattern": [
-        "/src/"
-      ],
-      "data-cover-never": [
-        "node_modules",
-        "tests"
-      ]
-    }
-  }
+  "homepage": "https://github.com/jefflindholm/fluent-sql#readme"
 }

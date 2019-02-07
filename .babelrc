@@ -1,6 +1,5 @@
 {
-    "presets": ["env"],
-    "plugins": ["transform-object-rest-spread"],
-    "sourceMaps": "inline",
-    "retainLines": true
+  "presets": ["@babel/env"],
+  "sourceMaps": "inline",
+  "retainLines": true
 }

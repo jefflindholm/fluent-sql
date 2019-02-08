@@ -17,6 +17,7 @@
     "shx": "^0.3.2"
   },
   "scripts": {
+    "do-publish": "npm publish --registry=https://registry.npmjs.org",
     "build": "babel src --out-dir dist",
     "test": "jest test/* --watch",
     "test:single": "jest test/*",

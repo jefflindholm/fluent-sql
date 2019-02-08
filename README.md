@@ -30,7 +30,7 @@ Create your query. SqlQuery takes an options object.
 - an object of options
   - sqlStartChar - character used to escape names
     - default is '['
-  - sqlEndChar - charater used to end escaped names
+  - sqlEndChar - character used to end escaped names
     - default is ']'
   - escapeLevel - array of zero or more ('table-alias', 'column-alias')
     - default is ['table-alias', 'column-alias']

@@ -1,6 +1,6 @@
 {
   "name": "fluent-sql",
-  "version": "2.1.0",
+  "version": "2.1.1",
   "description": "Fluent SQL lib",
   "main": "dist/fluent-sql.js",
   "directories": {
@@ -22,7 +22,8 @@
     "test": "jest test/* --watch",
     "test:single": "jest test/*",
     "coverage": "jest test/* --coverage",
-    "clean:dist": "shx rm -rf dist"
+    "clean:dist": "shx rm -rf dist",
+    "predo-publish": "npm run build"
   },
   "precommit": [
     "test:single",

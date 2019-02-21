@@ -27,6 +27,15 @@ describe('version2 tests', () => {
       expect(sql.values[0]).toBe('%foo%');
     });
     it('should build a query with $# for params for paging', () => {
+      const expectedFetch = `SELECT
+"business".id as "id",
+"business".business_name as "businessName",
+"business".tax_id as "taxId"
+FROM\nbusiness as "business"
+WHERE "business".business_name like ($1)
+ORDER BY "business".id ASC
+LIMIT 1 OFFSET 0`;
+
       setDefaultOptions(postgresOptions);
       const query = new SqlQuery()
         .from(business)
@@ -34,18 +43,7 @@ describe('version2 tests', () => {
         .select(business.star())
         .where(business.businessName.like('foo'));
       const sql = query.genSql();
-      expect(sql.fetchSql).toBe(
-        'SELECT * FROM (' +
-          '\nSELECT *, row_number() OVER (ORDER BY "id") as Paging_RowNumber FROM (' +
-          '\nSELECT' +
-          '\n"business".id as "id",' +
-          '\n"business".business_name as "businessName",' +
-          '\n"business".tax_id as "taxId"' +
-          '\nFROM\nbusiness as "business"' +
-          '\nWHERE "business".business_name like ($1)' +
-          '\n) base_query' +
-          '\n) as detail_query WHERE Paging_RowNumber BETWEEN 0 AND 1',
-      );
+      expect(sql.fetchSql).toBe(expectedFetch);
       expect(sql.values[0]).toBe('%foo%');
     });
     it('should build a query with LIMIT not TOP', () => {

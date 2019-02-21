@@ -28,6 +28,7 @@ Create your query. SqlQuery takes an options object.
 - SqlQuery object to copy options from
   OR
 - an object of options
+
   - sqlStartChar - character used to escape names
     - default is '['
   - sqlEndChar - character used to end escaped names
@@ -43,6 +44,35 @@ Create your query. SqlQuery takes an options object.
   - dialect - 'pg' = postgreSQL, 'MS' = SQLServer subtle changes to the generated SQL (TOP vs. LIMIT for
     example)
     - default is 'MS'
+  - recordSetPaging - true/false
+    - default is false
+
+- Non-record set paging
+  - MS dialect
+
+```sql
+select * from some-table where x > 1
+offset 0 rows
+fetch next 50 rows only
+```
+
+- Non-record set paging
+  - pg dialect
+
+```sql
+select * from some-table where x > 1
+limit 50 offset 0
+```
+
+- Record Set Paging
+
+```sql
+SELECT * FROM (
+	SELECT *, row_number() OVER (ORDER BY name ASC) as Paging_RowNumber FROM (
+    select * from some-table where x > 1
+	) base_query
+) as detail_query WHERE Paging_RowNumber BETWEEN 0 AND 50
+```
 
 ```javascript
 import { setPostgres, setSqlServer } from 'fluent-sql';
@@ -60,6 +90,7 @@ export const postgresOptions = {
   namedValueMarker: '$',
   markerType: 'number',
   dialect: 'pg',
+  recordSetPaging: false,
 };
 export const sqlServerOptions = {
   sqlStartChar: '[',
@@ -69,6 +100,7 @@ export const sqlServerOptions = {
   namedValueMarker: ':',
   markerType: 'name',
   dialect: 'MS',
+  recordSetPaging: false,
 };
 ```
 
@@ -82,7 +114,33 @@ const query = new SqlQuery()
 Get your SQL
 
 ```javascript
-const sql = query.getSql(decryptFunction, maskingFunction);
+const sql = query.genSql(decryptFunction, maskingFunction);
+```
+
+Sql looks like the following (MS Dialect)
+
+```javascript
+{
+  fetchSql:
+   'SELECT\n[users].id as [id],\n[users].username as [username],\n[users].password as [password]\nFROM\nusers as [users]\nWHERE [users].username = (:username0)',
+  countSql: undefined,
+  hasEncrypted: false,
+  values: {
+    username0: 'jsmith'
+  }
+}
+```
+
+Sql looks like the following (Postgres)
+
+```javascript
+{
+  fetchSql:
+   'SELECT\n"users".id as "id",\n"users".username as "username",\n"users".password as "password"\nFROM\nusers as "users"\nWHERE "users".username = ($1)',
+  countSql: undefined,
+  hasEncrypted: false,
+  values: [ 'jsmith' ]
+}
 ```
 
 Decrypt & Masking functions are just a function that takes 2 parameters, SqlColumn and boolean on weather or not to use a fully qualified column name (ie. table.col), you can do anything in these and return null or a SQL literal to insert for that column in the generated SQL. Both functions can be NULL
@@ -108,6 +166,19 @@ FROM bank_account as bank_account
 GROUP BY bank_account.user_id
 ```
 
+Limits & paging
+
+- top, limit, take, & pageSize = all set the record count returned the last called wins
+- offet & skip = how many records to skip
+- page = cannot be used with offset or skip MUST have a top, limit, take, or pageSize
+
+```javascript
+const query = new SqlQuery()
+  .select(users.id)
+  .page(5)
+  .pageSize(10);
+```
+
 Update/Insert
 
 ```javascript
@@ -124,3 +195,11 @@ Look through the tests for more examples, the tests should have every possible o
 ### How do I get set up?
 
 npm install fluent-sql
+
+## change history
+
+- did a terrible job up till now on this
+
+- 2.5.0
+  - Completely changed the generated SQL for paging.
+  - Added **recordSetPaging** option to get old behavior

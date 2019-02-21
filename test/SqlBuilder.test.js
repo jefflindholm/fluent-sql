@@ -15,6 +15,20 @@ describe('fluent sql tests', () => {
 
   describe('SqlBuilder tests', () => {
     it('should build a query', () => {
+      const baseSql = `SELECT
+[business].id as [id],
+[business].tax_id as [taxId]
+FROM
+business as [business]
+WHERE [business].id = (:id0)`;
+      const countSql = `SELECT count(*) as RecordCount FROM (
+${baseSql}
+) count_tbl`;
+      const fetchSql = `${baseSql}
+ORDER BY [business].id DESC
+OFFSET 0 ROWS
+FETCH NEXT 50 ROWS ONLY`;
+
       const details = {
         select: 'id,taxId',
         orderBy: 'id;DESC',
@@ -22,28 +36,52 @@ describe('fluent sql tests', () => {
       };
       const query = SqlBuilder.search(business, details);
       const sql = query.genSql();
-      const countSql =
-        'SELECT count(*) as RecordCount FROM (\nSELECT\n[business].id as [id],\n[business].tax_id as [taxId]\nFROM\nbusiness as [business]\nWHERE [business].id = (:id0)\n) count_tbl';
-      const fetchSql =
-        'SELECT * FROM (\nSELECT *, row_number() OVER (ORDER BY [id] DESC) as Paging_RowNumber FROM (\nSELECT\n[business].id as [id],\n[business].tax_id as [taxId]\nFROM\nbusiness as [business]\nWHERE [business].id = (:id0)\n) base_query\n) as detail_query WHERE Paging_RowNumber BETWEEN 0 AND 50';
       expect(sql.countSql).toBe(countSql);
       expect(sql.fetchSql).toBe(fetchSql);
     });
+
     it('should build a query with all columns when none specified', () => {
+      const baseSql = `SELECT
+[business].id as [id],
+[business].business_name as [businessName],
+[business].tax_id as [taxId]
+FROM
+business as [business]
+WHERE [business].id = (:id0)`;
+      const countSql = `SELECT count(*) as RecordCount FROM (
+${baseSql}
+) count_tbl`;
+      const fetchSql = `${baseSql}
+ORDER BY [business].id DESC
+OFFSET 0 ROWS
+FETCH NEXT 50 ROWS ONLY`;
+
       const details = {
         orderBy: 'id;DESC',
         filter: 'id.eq.1',
       };
       const query = SqlBuilder.search(business, details);
       const sql = query.genSql();
-      const countSql =
-        'SELECT count(*) as RecordCount FROM (\nSELECT\n[business].id as [id],\n[business].business_name as [businessName],\n[business].tax_id as [taxId]\nFROM\nbusiness as [business]\nWHERE [business].id = (:id0)\n) count_tbl';
-      const fetchSql =
-        'SELECT * FROM (\nSELECT *, row_number() OVER (ORDER BY [id] DESC) as Paging_RowNumber FROM (\nSELECT\n[business].id as [id],\n[business].business_name as [businessName],\n[business].tax_id as [taxId]\nFROM\nbusiness as [business]\nWHERE [business].id = (:id0)\n) base_query\n) as detail_query WHERE Paging_RowNumber BETWEEN 0 AND 50';
       expect(sql.countSql).toBe(countSql);
       expect(sql.fetchSql).toBe(fetchSql);
     });
+
     it('should build a query with paging as expected', () => {
+      const baseSql = `SELECT
+[business].id as [id],
+[business].business_name as [businessName],
+[business].tax_id as [taxId]
+FROM
+business as [business]
+WHERE [business].id = (:id0)`;
+      const countSql = `SELECT count(*) as RecordCount FROM (
+${baseSql}
+) count_tbl`;
+      const fetchSql = `${baseSql}
+ORDER BY [business].id DESC
+OFFSET 25 ROWS
+FETCH NEXT 25 ROWS ONLY`;
+
       const details = {
         orderBy: 'id;DESC',
         filter: 'id.eq.1',
@@ -52,14 +90,28 @@ describe('fluent sql tests', () => {
       };
       const query = SqlBuilder.search(business, details);
       const sql = query.genSql();
-      const countSql =
-        'SELECT count(*) as RecordCount FROM (\nSELECT\n[business].id as [id],\n[business].business_name as [businessName],\n[business].tax_id as [taxId]\nFROM\nbusiness as [business]\nWHERE [business].id = (:id0)\n) count_tbl';
-      const fetchSql =
-        'SELECT * FROM (\nSELECT *, row_number() OVER (ORDER BY [id] DESC) as Paging_RowNumber FROM (\nSELECT\n[business].id as [id],\n[business].business_name as [businessName],\n[business].tax_id as [taxId]\nFROM\nbusiness as [business]\nWHERE [business].id = (:id0)\n) base_query\n) as detail_query WHERE Paging_RowNumber BETWEEN 25 AND 50';
       expect(sql.countSql).toBe(countSql);
       expect(sql.fetchSql).toBe(fetchSql);
     });
+
     it('should build a query with complex where', () => {
+      const baseSql = `SELECT
+[business].id as [id],
+[business].business_name as [businessName],
+[business].tax_id as [taxId]
+FROM
+business as [business]
+WHERE ([business].id > (:id0)
+OR ([business].id = (:id1)
+AND [business].tax_id = (:tax_id2)))`;
+      const countSql = `SELECT count(*) as RecordCount FROM (
+${baseSql}
+) count_tbl`;
+      const fetchSql = `${baseSql}
+ORDER BY [business].id DESC
+OFFSET 25 ROWS
+FETCH NEXT 25 ROWS ONLY`;
+
       const details = {
         orderBy: 'id;DESC',
         filter: 'id.gt.10;id.eq.2,taxId.eq.100',
@@ -68,10 +120,6 @@ describe('fluent sql tests', () => {
       };
       const query = SqlBuilder.search(business, details);
       const sql = query.genSql();
-      const countSql =
-        'SELECT count(*) as RecordCount FROM (\nSELECT\n[business].id as [id],\n[business].business_name as [businessName],\n[business].tax_id as [taxId]\nFROM\nbusiness as [business]\nWHERE ([business].id > (:id0)\nOR ([business].id = (:id1)\nAND [business].tax_id = (:tax_id2)))\n) count_tbl';
-      const fetchSql =
-        'SELECT * FROM (\nSELECT *, row_number() OVER (ORDER BY [id] DESC) as Paging_RowNumber FROM (\nSELECT\n[business].id as [id],\n[business].business_name as [businessName],\n[business].tax_id as [taxId]\nFROM\nbusiness as [business]\nWHERE ([business].id > (:id0)\nOR ([business].id = (:id1)\nAND [business].tax_id = (:tax_id2)))\n) base_query\n) as detail_query WHERE Paging_RowNumber BETWEEN 25 AND 50';
       expect(sql.countSql).toBe(countSql);
       expect(sql.fetchSql).toBe(fetchSql);
     });

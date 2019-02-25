@@ -1,7 +1,7 @@
 import './string.js';
 import SqlColumn from './sql-column';
 import SqlJoin from './sql-join';
-import SqlQuery from './sql-query';
+import SqlQuery, { getDefaultOptions } from './sql-query';
 
 export default class SqlTable {
   /*
@@ -113,7 +113,9 @@ export default class SqlTable {
     return this;
   }
 
-  insert(data, options) {
+  insert(data, options = {}) {
+    const id = options.id || 'id';
+    const dialect = options.dialect || getDefaultOptions().dialect;
     const columns = [];
     const values = {};
     Object.entries(data).forEach(([k, v]) => {
@@ -131,7 +133,14 @@ export default class SqlTable {
     const valueString = Object.keys(values)
       .map(k => `:${k}`)
       .join(', ');
-    const sql = `INSERT INTO ${this.TableName} (${columnString}) VALUES (${valueString})`;
+    let sql;
+    if (dialect === 'MS') {
+      sql = `INSERT INTO ${this.TableName} (${columnString}) OUTPUT Inserted.${id} VALUES (${valueString})`;
+    } else if (dialect === 'pg') {
+      sql = `INSERT INTO ${this.TableName} (${columnString}) VALUES (${valueString}) RETURNING ${id}`;
+    } else {
+      sql = `INSERT INTO ${this.TableName} (${columnString}) VALUES (${valueString})`;
+    }
     return { sql, values };
   }
 

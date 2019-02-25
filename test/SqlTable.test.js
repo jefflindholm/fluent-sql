@@ -151,9 +151,26 @@ describe('fluent sql tests', () => {
   });
 
   describe('SqlTable insert/update generation tests', () => {
-    it('should construct a valid insert statement given an object with matching columns', () => {
-      const expected = 'INSERT INTO business (id, business_name, tax_id) VALUES (:id, :businessName, :taxId)';
+    it('should construct a valid insert statement given an object with matching columns for MS dialect', () => {
+      const expected =
+        'INSERT INTO business (id, business_name, tax_id) OUTPUT Inserted.id VALUES (:id, :businessName, :taxId)';
       const sql = business.insert({ id: 1, businessName: 'DDS', taxId: '12345-67' });
+      expect(sql.sql).toBe(expected);
+      expect(sql.values.id).toBe(1);
+      expect(sql.values.businessName).toBe('DDS');
+      expect(sql.values.taxId).toBe('12345-67');
+    });
+    it('should construct a valid insert statement given an object with matching columns for pg dialect', () => {
+      const expected = 'INSERT INTO business (id, business_name, tax_id) VALUES (:id, :businessName, :taxId) RETURNING id';
+      const sql = business.insert({ id: 1, businessName: 'DDS', taxId: '12345-67' }, { dialect: 'pg' });
+      expect(sql.sql).toBe(expected);
+      expect(sql.values.id).toBe(1);
+      expect(sql.values.businessName).toBe('DDS');
+      expect(sql.values.taxId).toBe('12345-67');
+    });
+    it('should construct a valid insert statement given an object with matching columns for unknown dialect', () => {
+      const expected = 'INSERT INTO business (id, business_name, tax_id) VALUES (:id, :businessName, :taxId)';
+      const sql = business.insert({ id: 1, businessName: 'DDS', taxId: '12345-67' }, { dialect: 'none' });
       expect(sql.sql).toBe(expected);
       expect(sql.values.id).toBe(1);
       expect(sql.values.businessName).toBe('DDS');

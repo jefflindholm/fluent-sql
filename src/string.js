@@ -54,7 +54,7 @@ function contains (s) {
 
 })();
 
-export default {
+module.exports = {
     toCamel,
     trim,
     toDashCase,

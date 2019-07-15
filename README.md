@@ -196,10 +196,35 @@ Look through the tests for more examples, the tests should have every possible o
 
 npm install fluent-sql
 
+### Generate `SqlTable` classes from database (supports Sqlite and postgres)
+- `npm i -D simple-db-migrate` (I used my command line parsing from this module)
+- `npm i -D sqlite3` or `npm i -D pg` if you are not using one of these already
+- exec `fluent-sql-gen`
+- command line options
+  * --verbose, -v `toggle on`
+  * --dialect, -d `one of [pg, sqlite]`
+  * --database, -db `string`
+  * --user, -u `string`
+  * --password, -p `string`
+  * --host, -h `string`
+  * --port `number`
+- defaults are
+  * --dialect=pg -db db.sqlite
+  
+## Other npm packages
+https://www.npmjs.com/package/simple-db-migrate
+* dead simple database migrations
+
 ## change history
 
 - did a terrible job up till now on this
 
+- 2.6.0
+  - added 'fluent-sql-gen' to create `SqlTable` classes from database
 - 2.5.0
   - Completely changed the generated SQL for paging.
   - Added **recordSetPaging** option to get old behavior
+
+## TODO:
+- add outer join
+- add generator for tables/columns

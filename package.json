@@ -1,20 +1,30 @@
 {
   "name": "fluent-sql",
-  "version": "2.5.0",
+  "version": "2.6.0",
   "description": "Fluent SQL lib",
   "main": "dist/fluent-sql.js",
   "directories": {
     "test": "test"
   },
+  "bin": {
+    "fluent-sql-gen": "dist/generate.js"
+  },
+  "peerDependencies": {
+    "pg": "^7.11.0",
+    "sqlite3": "^4.0.9",
+    "simple-db-migrate": "^0.7.0"
+  },
   "dependencies": {},
   "devDependencies": {
-    "@babel/cli": "^7.2.3",
+    "@babel/cli": "^7.5.0",
     "@babel/core": "^7.2.2",
     "@babel/preset-env": "^7.3.1",
     "flatted": "^2.0.0",
     "jest": "^24.1.0",
     "pre-commit": "^1.2.2",
-    "shx": "^0.3.2"
+    "shx": "^0.3.2",
+    "simple-db-migrate": "^0.7.0",
+    "sqlite3": "^4.0.9"
   },
   "scripts": {
     "do-publish": "npm publish --registry=https://registry.npmjs.org",
@@ -23,7 +33,10 @@
     "test:single": "jest test/*",
     "coverage": "jest test/* --coverage",
     "clean:dist": "shx rm -rf dist",
-    "predo-publish": "npm run build"
+    "predo-publish": "npm run build",
+    "postbuild": "npm run copy",
+    "copy": "shx cp src/generate.js dist",
+    "postcopy": "shx cp -r src/generate-lib dist"
   },
   "precommit": [
     "test:single",
@@ -33,7 +46,11 @@
     "type": "git",
     "url": "git+https://github.com/jefflindholm/fluent-sql.git"
   },
-  "keywords": [],
+  "keywords": [
+    "sql",
+    "database",
+    "fluent-api"
+  ],
   "author": "",
   "license": "ISC",
   "bugs": {

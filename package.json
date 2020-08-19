@@ -11,8 +11,8 @@
   },
   "peerDependencies": {
     "pg": "^7.11.0",
-    "sqlite3": "^4.0.9",
-    "simple-db-migrate": "^0.7.0"
+    "simple-db-migrate": "^0.7.0",
+    "sqlite3": "^4.0.9"
   },
   "dependencies": {},
   "devDependencies": {

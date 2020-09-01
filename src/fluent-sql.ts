@@ -18,18 +18,3 @@ export {
     postgresOptions,
     sqlServerOptions
 } from './sql-query';
-
-(function () {
-    if (!String.prototype.sqlEscape) {
-        const sqlEscape = function escape(sqlQuery, level) {
-            let query = null;
-            if (!sqlQuery || !sqlQuery.sqlEscape || typeof sqlQuery.sqlEscape !== 'function') {
-                query = new SqlQuery();
-            } else {
-                query = sqlQuery;
-            }
-            return query.sqlEscape(this, level);
-        };
-        String.prototype.sqlEscape = sqlEscape; // eslint-disable-line no-extend-native
-    }
-})();

@@ -1,9 +1,16 @@
-import './string.js';
+import './string.extensions';
+import { BaseColumn, BaseTable } from './base-sql';
 import SqlColumn from './sql-column';
 import SqlJoin from './sql-join';
 import SqlQuery from './sql-query';
+import SqlWhere from './sql-where';
 
-export default class SqlTable {
+
+export interface Options {
+  id: string | null;
+}
+
+export default class SqlTable implements BaseTable {
   /*
    * @param {} - either another SqlTable, alias
    *             or TableName, array of columns
@@ -14,34 +21,24 @@ export default class SqlTable {
    *          columns: [{ColumnName: 'id'}, {ColumnName: 'username'}, {ColumnName: 'password'}]
    *      }, 'u');
    */
-  constructor(...args) {
-    if (!new.target) {
-      return new SqlTable(...args);
-    }
-    let columns;
-    let alias;
-    if (typeof args[0] === 'string') {
-      this.TableName = args[0];
-      if (args.length > 1) {
-        columns = args[1];
-      }
-    } else {
-      alias = args[1];
-      this.TableName = args[0].TableName || args[0].name;
-      columns = args[0].Columns || args[0].columns;
-    }
-    this.Alias = alias || this.TableName;
-    this.Columns = [];
+  constructor(name: string, columns: BaseColumn[], schema: string, alias?: string) {
+    this._tableName = name;
+    this._schema = schema;
+    this._alias = alias || this._tableName;
     if (columns) {
-      columns.forEach(function(c) {
-        const name = c.ColumnName || c.name;
+      columns.forEach(c => {
+        const name = c.ColumnName;
         const prop = name.toCamel();
-        const col = new SqlColumn(this, name, c.Literal);
+        const col = new SqlColumn(this, name, c.Literal, false, [], null, false, null);
         this.Columns.push(col);
-        this[prop] = col;
+        (this as BaseTable)[prop] = col;
       }, this);
     }
   }
+  _schema: string;
+  _tableName: string;
+  _alias: string | null = null;
+  _columns: BaseColumn[] = [];
   /* eslint-disable brace-style */
   get Schema() {
     return this._schema;
@@ -56,7 +53,7 @@ export default class SqlTable {
     this._tableName = v;
   }
   get Alias() {
-    return this._alias;
+    return this._alias || this._tableName;
   }
   set Alias(v) {
     this._alias = v;
@@ -78,34 +75,34 @@ export default class SqlTable {
   getAlias() {
     return this.Alias || this.TableName;
   }
-  as(alias) {
-    const table = new SqlTable(this, alias);
+  as(alias: string) {
+    const table = CreateTable(this, alias);
     table.Alias = alias;
     return table;
   }
-  join(joinClause) {
-    const query = new SqlQuery();
+  join(joinClause: SqlJoin) {
+    const query = new SqlQuery(null);
     query.join(joinClause);
     return query;
   }
-  left(joinClause) {
-    const query = new SqlQuery();
+  left(joinClause: SqlJoin) {
+    const query = new SqlQuery(null);
     query.left(joinClause);
     return query;
   }
-  right(joinClause) {
-    const query = new SqlQuery();
+  right(joinClause: SqlJoin) {
+    const query = new SqlQuery(null);
     query.right(joinClause);
     return query;
   }
-  on(sqlColumn) {
+  on(sqlColumn: SqlColumn) {
     if (sqlColumn.Table !== this) {
       throw { location: 'SqlTable::on', message: 'trying to build join on column not from this table' }; //eslint-disable-line
     }
     return new SqlJoin(sqlColumn);
   }
-  where(whereClause) {
-    const query = new SqlQuery();
+  where(whereClause: SqlWhere) {
+    const query = new SqlQuery(null);
     query.where(whereClause);
     return query;
   }
@@ -113,9 +110,9 @@ export default class SqlTable {
     return this;
   }
 
-  insert(data, options) {
-    const columns = [];
-    const values = {};
+  insert(data: any, options: any) {
+    const columns:BaseColumn[] = [];
+    const values: any = {};
     Object.entries(data).forEach(([k, v]) => {
       for (let i = 0; i < this.Columns.length; i++) {
         const c = this.Columns[i];
@@ -135,10 +132,10 @@ export default class SqlTable {
     return { sql, values };
   }
 
-  update(data, options = {}) {
+  update(data: any, options:Options = {id: null}) {
     const id = options.id || 'id';
     const keyData = {};
-    const values = {};
+    const values: any = {};
 
     Object.entries(data).forEach(([k, v]) => {
       for (let i = 0; i < this.Columns.length; i++) {
@@ -158,4 +155,8 @@ export default class SqlTable {
     const sql = `UPDATE ${this.TableName} SET ${columnString} WHERE ${keyString}`;
     return { sql, values };
   }
+}
+
+function CreateTable(table: SqlTable, alias: string): SqlTable {
+  return new SqlTable(table.TableName, table.Columns, table.Schema, alias);
 }

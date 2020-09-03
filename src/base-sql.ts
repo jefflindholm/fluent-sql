@@ -10,6 +10,7 @@ export interface BaseTable {
   Columns: BaseColumn[];
   Schema: string | null;
   [key: string]: any;
+  getTable(query: BaseQuery | null): string;
 }
 export interface BaseWhere {
   Column: BaseColumn | null;
@@ -18,10 +19,11 @@ export interface BaseWhere {
   Wheres: BaseWhere[];
 }
 export enum eEscapeLevels {
-  table = 'table-alias',
-  column = 'column-alias'
+  tableAlias = 'table-alias',
+  columnAlias = 'column-alias',
+  tableName = 'table-name',
+  columnName = 'column-name',
 }
 export interface BaseQuery {
   sqlEscape(str: string, level: eEscapeLevels): string;
-  create(): BaseQuery;
 }

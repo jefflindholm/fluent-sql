@@ -1,5 +1,5 @@
 import './string.extensions';
-import { BaseColumn, BaseTable } from './base-sql';
+import { BaseColumn, BaseTable, eEscapeLevels } from './base-sql';
 import SqlOrder from './sql-order';
 import SqlQuery from './sql-query';
 import SqlTable from './sql-table';
@@ -116,7 +116,7 @@ export default class SqlColumn implements BaseColumn {
     if (this.Literal) {
       return this.Literal;
     } else if (this.Table) {
-      return `${this.Table.Alias.sqlEscape(sqlQuery, 'table-alias')}.${this.ColumnName}`;
+      return `${this.Table.Alias.sqlEscape(sqlQuery, eEscapeLevels.tableAlias)}.${this.ColumnName?.sqlEscape(sqlQuery, eEscapeLevels.columnName)}`;
     }
     throw new SqlError('SqlColumn::qualifiedName', 'Literal and Table cannot both be null in SqlQuery');
   }

@@ -27,12 +27,12 @@ export const postgresOptions: DbOptions = {
   markerType: 'number',
   dialect: 'pg',
   recordSetPaging: false,
-  escapeLevel: [eEscapeLevels.table, eEscapeLevels.column],
+  escapeLevel: [eEscapeLevels.columnAlias, eEscapeLevels.tableAlias],
 };
 export const sqlServerOptions: DbOptions = {
   sqlStartChar: '[',
   sqlEndChar: ']',
-  escapeLevel: [eEscapeLevels.table, eEscapeLevels.column],
+  escapeLevel: [eEscapeLevels.columnAlias, eEscapeLevels.tableAlias],
   namedValues: true,
   namedValueMarker: ':',
   markerType: 'name',
@@ -61,8 +61,8 @@ export function setSqlServer() {
  *                      or an object of options
  *                      sqlStartChar - character used to escape names (default is '[')
  *                      sqlEndChar - character used to end escaped names (default is ']')
- *                      escapeLevel - array of zero or more ('table-alias', 'column-alias')
- *                                  - default is ['table-alias', 'column-alias']
+ *                      escapeLevel - array of zero or more (eEscapeLevels.tableAlias, eEscapeLevels.columnAlias)
+ *                                  - default is [eEscapeLevels.tableAlias, eEscapeLevels.columnAlias]
  *                      namedValues - boolean, if false will use ? for the values and just
  *                                      return an array of values
  *                                  - default true
@@ -245,8 +245,8 @@ export default class SqlQuery implements BaseQuery {
   }
   /*
    * @param {defaultSqlTable} - table to use if the order string does not contain qualified column names
-   * @param {orderString} - order string in the form col dir, col dir, ... col = columnName or tableName.columnName, dir = ASC or DESC
-   * @param {overrides} - columnName: [array of SqlColumns] useful when someone wants to order by 'name' but there are multiple names in the select
+   * @param {orderString} - order string in the form col dir, col dir, ... col = ColumnName?.sqlEscape(this, eEscapeLevels.columnName) or tableName.ColumnName?.sqlEscape(this, eEscapeLevels.columnName), dir = ASC or DESC
+   * @param {overrides} - ColumnName?.sqlEscape(this, eEscapeLevels.columnName): [array of SqlColumns] useful when someone wants to order by 'name' but there are multiple names in the select
    *                         or you are using a function but want to order by its parameters
    *                         example: you are selecting buildFullNameFunc(first, last, middle) and don't want to order by the function also, use
    *                         { 'name' : [FirstColumn, LastColumn, MiddleColumn] } and order by 'name <dir>'
@@ -347,7 +347,7 @@ export default class SqlQuery implements BaseQuery {
     const array = this.Columns;
     for (let i = 0; i < array.length; i++) {
       if (
-        array[i].ColumnName === sqlColumn.ColumnName &&
+        array[i].ColumnName?.sqlEscape(this, eEscapeLevels.columnName) === sqlColumn.ColumnName?.sqlEscape(this, eEscapeLevels.columnName) &&
         array[i].TableName === sqlColumn.TableName &&
         array[i].Alias === sqlColumn.Alias
       ) {
@@ -360,7 +360,7 @@ export default class SqlQuery implements BaseQuery {
     const array = this.Columns;
     for (let i = 0; i < array.length; i++) {
       if (
-        array[i].ColumnName === sqlColumn.ColumnName &&
+        array[i].ColumnName?.sqlEscape(this, eEscapeLevels.columnName) === sqlColumn.ColumnName?.sqlEscape(this, eEscapeLevels.columnName) &&
         array[i].TableName === sqlColumn.TableName &&
         array[i].Alias === sqlColumn.Alias
       ) {
@@ -400,7 +400,7 @@ export default class SqlQuery implements BaseQuery {
         if (!c.Alias) {
           throw new SqlError('SqlQuery::genSql', `Literal exists with no Alias ${c.Literal}`);
         }
-        columns += `${idx > 0 ? ',' : ''}\n(${c.Literal}) as ${c.Alias.sqlEscape(this, 'column-alias')}`;
+        columns += `${idx > 0 ? ',' : ''}\n(${c.Literal}) as ${c.Alias.sqlEscape(this, eEscapeLevels.columnAlias)}`;
         // handle any columns that might have values
         if (c.Values) {
           for (const attr in c.Values) {
@@ -424,14 +424,14 @@ export default class SqlQuery implements BaseQuery {
         literal = literal || c.qualifiedName(this);
         columns += `${idx > 0 ? ',' : ''}\n${c.Aggregate.operation}(${literal}) as ${c.Alias.sqlEscape(
           this,
-          'column-alias',
+          eEscapeLevels.columnAlias
         )}`;
         if (c.Aggregate.groupBy) {
           groupBy.push(c.Aggregate.groupBy.qualifiedName(this));
         }
       } else {
         if (!c.Alias) {
-          throw new SqlError('SqlQuery::genSql', 'Column exists with no Alias - which also means no ColumnName');
+          throw new SqlError('SqlQuery::genSql', 'Column exists with no Alias - which also means no ColumnName?.sqlEscape(this, eEscapeLevels.columnName)');
         }
         let literal = decryptFunction ? decryptFunction(c, true) : null;
         hasEncrypted = literal !== null;
@@ -440,10 +440,10 @@ export default class SqlQuery implements BaseQuery {
           literal = maskFunction(c, literal) || literal;
         }
 
-        columns += `${idx > 0 ? ',' : ''}\n${literal} as ${c.Alias.sqlEscape(this, 'column-alias')}`;
+        columns += `${idx > 0 ? ',' : ''}\n${literal} as ${c.Alias.sqlEscape(this, eEscapeLevels.columnAlias)}`;
 
         if (!orderString) {
-          orderString = c.Alias.sqlEscape(this, 'column-alias');
+          orderString = c.Alias.sqlEscape(this, eEscapeLevels.columnAlias);
         }
 
         if (c.Grouped) {
@@ -453,7 +453,7 @@ export default class SqlQuery implements BaseQuery {
     }, this);
     let from = '';
     this.From.forEach((f, idx) => {
-      from += `${idx > 0 ? ',' : ''}\n${f.getTable()} as ${f.Alias.sqlEscape(this, 'table-alias')}`;
+      from += `${idx > 0 ? ',' : ''}\n${f.getTable(this)} as ${f.Alias.sqlEscape(this, eEscapeLevels.tableAlias)}`;
     }, this);
     let join = '';
     this.Joins.forEach(j => {
@@ -464,11 +464,11 @@ export default class SqlQuery implements BaseQuery {
         throw new SqlError('SqlQuery::genSql', 'Join "From" does not have a value');
       }
       const type = j.Left ? 'LEFT ' : j.Right ? 'RIGHT ' : ''; // eslint-disable-line no-nested-ternary
-      const from = j.From.Table.getTable();
-      const alias = j.From.Table.Alias.sqlEscape(this, 'table-alias');
-      const fromCol = j.From.ColumnName;
-      const to = j.To.Table.Alias.sqlEscape(this, 'table-alias');
-      const toCol = j.To.ColumnName;
+      const from = j.From.Table.getTable(this);
+      const alias = j.From.Table.Alias.sqlEscape(this, eEscapeLevels.tableAlias);
+      const fromCol = j.From.ColumnName?.sqlEscape(this, eEscapeLevels.columnName);
+      const to = j.To.Table.Alias.sqlEscape(this, eEscapeLevels.tableAlias);
+      const toCol = j.To.ColumnName?.sqlEscape(this, eEscapeLevels.columnName);
       join += `\n${type}JOIN ${from} as ${alias} on ${alias}.${fromCol} = ${to}.${toCol}`;
     }, this);
 
@@ -532,7 +532,7 @@ export default class SqlQuery implements BaseQuery {
     }
 
     if (this._pageNo && this._options.recordSetPaging) {
-      const pageOrder = this.OrderBy.map(o => `${o.Column.ColumnName} ${o.Direction}`).join(', ');
+      const pageOrder = this.OrderBy.map(o => `${o.Column.ColumnName?.sqlEscape(this, eEscapeLevels.columnName)} ${o.Direction}`).join(', ');
 
       fetchSql = `SELECT * FROM (
 SELECT *, row_number() OVER (ORDER BY ${pageOrder}) as Paging_RowNumber FROM (
@@ -570,20 +570,15 @@ ${select}
 
     return sql;
   }
-  create() {
-    return new SqlQuery(null);
-  }
-}
-function CreateSqlQuery() {
-  return new SqlQuery(null);
 }
 
 String.prototype.sqlEscape = function escape(sqlQuery?: any, level?: any) {
-  let query = null;
   if (!sqlQuery || !sqlQuery.sqlEscape || typeof sqlQuery.sqlEscape !== 'function') {
-    return CreateSqlQuery().sqlEscape(this as string, null);
-  } else {
-    query = sqlQuery;
+    const options = getDefaultOptions();
+    if ((level && options.escapeLevel.indexOf(level) > -1) || !level) {
+      return options.sqlStartChar + this + options.sqlEndChar;
+    }
+    return this;
   }
-  return query.sqlEscape(this, level);
+  return sqlQuery.sqlEscape(this, level);
 };

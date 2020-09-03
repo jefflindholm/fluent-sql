@@ -64,9 +64,9 @@ function updateDelete(operation: string, sqlTable: BaseTable, details: any, encr
   let sql;
   if (operation === 'update') {
     if (isArray) {
-      sql = `UPDATE ${sqlTable.getTable()} SET ${columns} WHERE id = ${options.namedValueMarker}1`;
+      sql = `UPDATE ${sqlTable.getTable(null)} SET ${columns} WHERE id = ${options.namedValueMarker}1`;
     } else {
-      sql = `UPDATE ${sqlTable.getTable()} SET ${columns} WHERE id = ${options.namedValueMarker}id`;
+      sql = `UPDATE ${sqlTable.getTable(null)} SET ${columns} WHERE id = ${options.namedValueMarker}id`;
     }
   } else if (operation === 'delete') {
     if (details.id) {
@@ -76,7 +76,7 @@ function updateDelete(operation: string, sqlTable: BaseTable, details: any, encr
         columns += `${(item === 1 ? '' : sep)}id = ${options.namedValueMarker}id`;
       }
     }
-    sql = `DELETE FROM ${sqlTable.getTable()} WHERE ${columns}`;
+    sql = `DELETE FROM ${sqlTable.getTable(null)} WHERE ${columns}`;
   } else {
     throw new SqlError('SqlBuilder', `Invalid operation ${operation}`);
   }
@@ -184,7 +184,7 @@ export default class SqlBuilder {
     }
 
     return {
-      sql: `INSERT INTO ${sqlTable.getTable()} (${columnList}) VALUES (${variableList})`,
+      sql: `INSERT INTO ${sqlTable.getTable(null)} (${columnList}) VALUES (${variableList})`,
       values: data,
       hasEncrypted: hasEncryptedValues,
     };

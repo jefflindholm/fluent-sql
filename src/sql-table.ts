@@ -1,5 +1,5 @@
 import './string.extensions';
-import { BaseColumn, BaseTable } from './base-sql';
+import { BaseColumn, BaseTable, eEscapeLevels, BaseQuery } from './base-sql';
 import SqlColumn from './sql-column';
 import SqlJoin from './sql-join';
 import SqlQuery from './sql-query';
@@ -87,11 +87,13 @@ export default class SqlTable implements BaseTable {
   }
   /* eslint-enable */
 
-  getTable() {
+  getTable(query: BaseQuery | null) {
+    const name = this.TableName.sqlEscape(query, eEscapeLevels.tableName);
+
     if (this.Schema) {
-      return `${this.Schema}.${this.TableName}`;
+      return `${this.Schema}.${name}`;
     }
-    return this.TableName;
+    return name;
   }
   getAlias() {
     return this.Alias || this.TableName;

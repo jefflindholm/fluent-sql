@@ -6,7 +6,7 @@ jlindholm/fluent-sql:
   Build:
     - echo "Begin Build"
     - npm install
-    - npm run test:single
+    - npm run test:once
 
   PreInstall:
     - echo "Begin PreInstall"

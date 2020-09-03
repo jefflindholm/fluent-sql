@@ -192,6 +192,7 @@ const update = bank.update({ id: 1, balance: 1000.0 });
 
 Look through the tests for more examples, the tests should have every possible option exercised
 
+
 ### How do I get set up?
 
 npm install fluent-sql
@@ -209,7 +210,7 @@ npm install fluent-sql
   * --host, -h `string`
   * --port `number`
 - defaults are
-  * --dialect=pg -db db.sqlite
+  * --dialect=sqlite -db db.sqlite
   
 ## Other npm packages
 https://www.npmjs.com/package/simple-db-migrate

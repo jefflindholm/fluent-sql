@@ -5,10 +5,10 @@ export interface BaseColumn {
   [key: string]: any;
 }
 export interface BaseTable {
-  _tableName: string|null;
-  _alias: string | null;
-  _columns: BaseColumn[];
-  _schema: string | null;
+  TableName: string | null;
+  Alias: string;
+  Columns: BaseColumn[];
+  Schema: string | null;
   [key: string]: any;
 }
 export interface BaseWhere {

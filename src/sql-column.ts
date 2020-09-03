@@ -55,14 +55,14 @@ export default class SqlColumn implements BaseColumn {
     this._alias = alias || (this._columnName && this._columnName.toCamel());
   }
 
-  _table: BaseTable | null;
-  _columnName: string | undefined;
-  _literal: string | undefined;
-  _alias: string | undefined;
-  _not: boolean | undefined;
-  _values: any | undefined = [];
-  _grouped: boolean | undefined;
-  _aggregate: SqlAggregate | undefined;
+  private _table: BaseTable | null;
+  private _columnName: string | undefined;
+  private _literal: string | undefined;
+  private _alias: string | undefined;
+  private _not: boolean | undefined;
+  private _values: any | undefined = [];
+  private _grouped: boolean | undefined;
+  private _aggregate: SqlAggregate | undefined;
 
   // aggregate functions
   aggregate(op: string): SqlAggregate {

@@ -12,11 +12,11 @@ export default class SqlWhere implements BaseWhere {
     this._wheres = [];
   }
 
-  _value: any = null;
-  _column: BaseColumn | null = null;
-  _op: string | null = null;
-  _wheres: SqlWhere[];
-  _type: string | null = null;
+  private _value: any = null;
+  private _column: BaseColumn | null = null;
+  private _op: string | null = null;
+  private _wheres: SqlWhere[];
+  private _type: string | null = null;
 
   add(whereClause: SqlWhere): SqlWhere {
     let result: SqlWhere;

@@ -17,8 +17,8 @@ export default class SqlOrder {
     this._direction = dir || 'ASC';
     }
   }
-  _column: SqlColumn;
-  _direction: String;
+  private _column: SqlColumn;
+  private _direction: String;
 
   get Column() {
     return this._column;

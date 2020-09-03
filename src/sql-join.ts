@@ -10,10 +10,10 @@ export default class SqlJoin {
     }
     this._from = sqlColumn;
   }
-  _from: SqlColumn;
-  _to: SqlColumn | null = null;
-  _left: boolean = false;
-  _right: boolean = false;
+  private _from: SqlColumn;
+  private _to: SqlColumn | null = null;
+  private _left: boolean = false;
+  private _right: boolean = false;
 
   get Left() { return this._left }
   set Left(v) { this._left = v }

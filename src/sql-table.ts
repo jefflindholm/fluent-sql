@@ -34,10 +34,10 @@ export default class SqlTable implements BaseTable {
       this.Columns = columns;
     }
   }
-  _schema: string;
-  _tableName: string;
-  _alias: string | null = null;
-  _columns: BaseColumn[] = [];
+  private _schema: string;
+  private _tableName: string;
+  private _alias: string | null = null;
+  private _columns: BaseColumn[] = [];
   /* eslint-disable brace-style */
   get Schema() {
     return this._schema;

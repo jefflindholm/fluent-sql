@@ -32,16 +32,14 @@
   },
   "scripts": {
     "do-publish": "npm publish --registry=https://registry.npmjs.org",
-    "build": "babel src --out-dir dist",
+    "build-old": "babel src --out-dir dist",
+    "prebuild": "shx rm dist/*",
+    "build": "tsc",
     "test": "jest test/* --watch",
-    "test:single": "jest test/*",
+    "test:once": "jest test/*",
     "coverage": "jest test/* --coverage",
     "clean:dist": "shx rm -rf dist",
-    "predo-publish": "npm run build",
-    "postbuild": "npm run copy",
-    "copy": "shx cp src/generate.js dist",
-    "postcopy": "shx cp -r src/generate-lib dist",
-    "test:file": "jest"
+    "predo-publish": "npm run build"
   },
   "precommit": [
     "test:single",

@@ -84,7 +84,6 @@ export default class SqlQuery implements BaseQuery {
     this._joins = [];
     this._wheres = [];
     this._orderBy = [];
-    this._groupBy = [];
     this._having = [];
     this._variableCount = 0;
 
@@ -92,20 +91,18 @@ export default class SqlQuery implements BaseQuery {
      * @return {string}
      */
   }
-  _options: DbOptions;
-  _columns: SqlColumn[];
-  _from: BaseTable[];
-  _joins: SqlJoin[];
-  _wheres: SqlWhere[];
-  _orderBy: SqlOrder[];
-  _groupBy: SqlColumn[];
-  _having: SqlWhere[];
-  _distinct: boolean = false;
-  _variableCount: number;
-
-  _offsetCount: number|null = null;
-  _pageNo: number|null = null;
-  _takeCount: number|null = null;
+  private _options: DbOptions;
+  private _columns: SqlColumn[];
+  private _from: BaseTable[];
+  private _joins: SqlJoin[];
+  private _wheres: SqlWhere[];
+  private _orderBy: SqlOrder[];
+  private _having: SqlWhere[];
+  private _distinct: boolean = false;
+  private _variableCount: number;
+  private _offsetCount: number|null = null;
+  private _pageNo: number|null = null;
+  private _takeCount: number|null = null;
 
   get Distinct() { return this._distinct; }
   set Distinct(v) { this._distinct = v; }

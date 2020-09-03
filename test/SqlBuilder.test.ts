@@ -1,17 +1,22 @@
 /* global describe it */
-import '../src/string';
-import { SqlQuery } from '../src/fluent-sql.js';
-import { SqlTable } from '../src/fluent-sql.js';
-import { SqlColumn } from '../src/fluent-sql.js';
-//import {SqlWhere} from '../src/fluent-sql.js';
-//import {SqlOrder} from '../src/fluent-sql.js';
-import { SqlJoin } from '../src/fluent-sql.js';
-import { SqlBuilder } from '../src/fluent-sql.js';
-import { setDefaultOptions, getDefaultOptions } from '../src/fluent-sql.js';
+import '../src/string.extensions';
+import { BaseTable, BaseColumn } from '../src/base-sql';
+import SqlTable from '../src/sql-table';
+import { SqlBuilder } from '../src/fluent-sql';
+import { getDefaultOptions, setDefaultOptions, DbOptions } from '../src/sql-query';
+import SqlColumn from '../src/sql-column';
+import { SearchDetails } from '../src/sql-builder';
 
 describe('fluent sql tests', () => {
-  const businessColumns = [{ ColumnName: 'id' }, { ColumnName: 'business_name' }, { ColumnName: 'tax_id' }];
-  const business = new SqlTable({ TableName: 'business', columns: businessColumns });
+  const businessColumns = [
+    { ColumnName: 'id' },
+    { ColumnName: 'business_name' },
+    { ColumnName: 'tax_id' },
+  ];
+  const business: BaseTable = SqlTable.create({
+    TableName: 'business',
+    Columns: businessColumns,
+  } as SqlTable);
 
   describe('SqlBuilder tests', () => {
     it('should build a query', () => {
@@ -34,7 +39,7 @@ FETCH NEXT 50 ROWS ONLY`;
         orderBy: 'id;DESC',
         filter: 'id.eq.1',
       };
-      const query = SqlBuilder.search(business, details);
+      const query = SqlBuilder.search(business, details as SearchDetails);
       const sql = query.genSql();
       expect(sql.countSql).toBe(countSql);
       expect(sql.fetchSql).toBe(fetchSql);
@@ -60,7 +65,7 @@ FETCH NEXT 50 ROWS ONLY`;
         orderBy: 'id;DESC',
         filter: 'id.eq.1',
       };
-      const query = SqlBuilder.search(business, details);
+      const query = SqlBuilder.search(business, details as SearchDetails);
       const sql = query.genSql();
       expect(sql.countSql).toBe(countSql);
       expect(sql.fetchSql).toBe(fetchSql);
@@ -88,7 +93,7 @@ FETCH NEXT 25 ROWS ONLY`;
         pageNo: 2,
         pageSize: 25,
       };
-      const query = SqlBuilder.search(business, details);
+      const query = SqlBuilder.search(business, details as SearchDetails);
       const sql = query.genSql();
       expect(sql.countSql).toBe(countSql);
       expect(sql.fetchSql).toBe(fetchSql);
@@ -118,7 +123,7 @@ FETCH NEXT 25 ROWS ONLY`;
         pageNo: 2,
         pageSize: 25,
       };
-      const query = SqlBuilder.search(business, details);
+      const query = SqlBuilder.search(business, details as SearchDetails);
       const sql = query.genSql();
       expect(sql.countSql).toBe(countSql);
       expect(sql.fetchSql).toBe(fetchSql);
@@ -139,7 +144,7 @@ FETCH NEXT 25 ROWS ONLY`;
       const oldOptions = getDefaultOptions();
       setDefaultOptions({
         namedValueMarker: '$',
-      });
+      } as DbOptions);
       const data = { id: 1234, businessName: "some guy's cars" };
       const cmd = SqlBuilder.insert(business, data, 4000);
       setDefaultOptions(oldOptions);
@@ -177,7 +182,7 @@ FETCH NEXT 25 ROWS ONLY`;
       const oldOptions = getDefaultOptions();
       setDefaultOptions({
         namedValueMarker: '$',
-      });
+      } as DbOptions);
       const data = { id: 1234, businessName: "some guy's cars" };
       const cmd = SqlBuilder.update(business, data);
       setDefaultOptions(oldOptions);
@@ -204,7 +209,7 @@ FETCH NEXT 25 ROWS ONLY`;
       const oldOptions = getDefaultOptions();
       setDefaultOptions({
         namedValueMarker: '$',
-      });
+      } as DbOptions);
       const data = { id: 1234, businessName: "some guy's cars" };
       const cmd = SqlBuilder.delete(business, data);
       setDefaultOptions(oldOptions);
@@ -221,7 +226,7 @@ FETCH NEXT 25 ROWS ONLY`;
       const oldOptions = getDefaultOptions();
       setDefaultOptions({
         namedValueMarker: '$',
-      });
+      } as DbOptions);
       const data = { id: 1234 };
       const cmd = SqlBuilder.delete(business, data);
       setDefaultOptions(oldOptions);
@@ -244,19 +249,19 @@ FETCH NEXT 25 ROWS ONLY`;
       expect(cmd.sql).toBe(`UPDATE business SET business_name = :${name} WHERE id = :${id}`);
     });
     it('should throw an exception if the first argument is not a SqlTable to insert and update', () => {
-      expect(() => SqlBuilder.update({})).toThrow({
+      expect(() => SqlBuilder.update({} as any, null)).toThrow({
         location: 'SqlBuilder::update',
         message: 'sqlTable is not an instance of SqlTable',
-      });
+      } as any);
     });
     it('should throw an exception if the first argument is not a SqlTable to insert and update', () => {
-      expect(() => SqlBuilder.insert({})).toThrow({
+      expect(() => SqlBuilder.insert({} as any, null, null)).toThrow({
         location: 'SqlBuilder::insert',
         message: 'sqlTable is not an instance of SqlTable',
-      });
+      } as any);
     });
     it('should encrypt columns as needed for update', () => {
-      const decrypt = function(column, varName) {
+      const decrypt = function(column: SqlColumn, varName: string) {
         if (!(column instanceof SqlColumn)) {
           throw { msg: 'not a SqlColumn' };
         }
@@ -278,7 +283,7 @@ FETCH NEXT 25 ROWS ONLY`;
       expect(cmd.sql).toBe(`UPDATE business SET business_name = :${name},tax_id = ENCRYPT(:${tax}) WHERE id = :${id}`);
     });
     it('should encrypt columns as needed for insert', () => {
-      const decrypt = function(column, varName) {
+      const decrypt = function(column: SqlColumn, varName: string) {
         if (!(column instanceof SqlColumn)) {
           throw { msg: 'not a SqlColumn' };
         }

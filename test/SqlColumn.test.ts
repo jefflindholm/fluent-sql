@@ -1,24 +1,39 @@
 /* global describe it */
-import '../src/string';
-import { SqlQuery } from '../src/fluent-sql.js';
-import { SqlTable } from '../src/fluent-sql.js';
-import { SqlColumn } from '../src/fluent-sql.js';
-import { SqlWhere } from '../src/fluent-sql.js';
-import { SqlOrder } from '../src/fluent-sql.js';
-import { SqlJoin } from '../src/fluent-sql.js';
-import { SqlBuilder } from '../src/fluent-sql.js';
-import { setDefaultOptions, getDefaultOptions } from '../src/fluent-sql.js';
+import '../src/string.extensions';
+import SqlTable from '../src/sql-table';
+import SqlColumn from '../src/sql-column';
+import SqlWhere from '../src/sql-where';
+import SqlOrder from '../src/sql-order';
+import { BaseTable } from '../src/base-sql';
 
 describe('fluent sql tests', () => {
-  const businessColumns = [{ ColumnName: 'id' }, { ColumnName: 'business_name' }, { ColumnName: 'tax_id' }];
-  const business = new SqlTable({ TableName: 'business', columns: businessColumns });
-  const business_dba = new SqlTable('business_dba', [
+  const businessColumns = [
+    { ColumnName: 'id' },
+    { ColumnName: 'business_name' },
+    { ColumnName: 'tax_id' }
+  ];
+  const business: BaseTable = SqlTable.create({
+    TableName: 'business',
+    Columns: businessColumns
+  } as SqlTable);
+  const business_dba: BaseTable = SqlTable.create({
+    TableName: 'business_dba',
+    Columns: [
+      { ColumnName: 'id' },
+      { ColumnName: 'business_id' },
+      { ColumnName: 'dba' },
+    ]
+  } as SqlTable);
+  const financeColumns = [
     { ColumnName: 'id' },
     { ColumnName: 'business_id' },
-    { ColumnName: 'dba' },
-  ]);
-  const financeColumns = [{ name: 'id' }, { name: 'business_id' }, { name: 'balance' }, { name: 'finance_type' }];
-  const finance = new SqlTable({ name: 'finance', columns: financeColumns });
+    { ColumnName: 'balance' },
+    { ColumnName: 'finance_type' }
+  ];
+  const finance = SqlTable.create({
+    TableName: 'finance',
+    Columns: financeColumns
+  } as SqlTable);
 
   function getBusinessCols() {
     let columns = '';
@@ -35,7 +50,7 @@ describe('fluent sql tests', () => {
   describe('SqlColumn tests', () => {
     const col1 = business.id;
     const col2 = business.id.as('businessId');
-    const literal = new SqlColumn(null, null, '(select top 1 id from business)').as('foo');
+    const literal = SqlColumn.create({ literal: '(select top 1 id from business)' }).as('foo');
 
     describe('col1', () => {
       it('should have a qualified name of tableName1.columnName1', () => {
@@ -53,18 +68,20 @@ describe('fluent sql tests', () => {
     });
     describe('literal tests', () => {
       it('should not have a column name', () => {
-        expect(literal.ColumnName).toBe(null);
+        expect(literal.ColumnName).toBe(undefined);
       });
       it('should have an alias', () => {
         expect(literal.Alias).toBe('foo');
       });
     });
-    it('should throw execption if it is constructed from somrthing other than SqlColumn, SqlTable, or {Literal:<val>}', () => {
-      expect(() => new SqlColumn({})).toThrow({
+
+    it('should throw exception if it is constructed from something other than SqlTable, or {Literal:<val>, alias: <val>}', () => {
+      expect(() => new SqlColumn({} as any)).toThrow({
         location: 'SqlColumn::constructor',
-        message: 'must construct using a SqlTable',
-      });
+        message: 'must construct using a SqlTable or literal',
+      } as any);
     });
+
     it('should generate SqlWhere clauses from operators, eq, ne, gt, gte, lt, lte, isNull, isNotNull, like, in', () => {
       const col = business.id;
       let where;
@@ -84,6 +101,7 @@ describe('fluent sql tests', () => {
       where = col.in([1, 2, 3, 4, 5, 6]);
       expect(where.Value).toMatchObject([1, 2, 3, 4, 5, 6]);
     });
+
     it('should generate SqlOder clauses, using asc or desc', () => {
       let order;
       const column = business.id;
@@ -100,6 +118,7 @@ describe('fluent sql tests', () => {
       expect(order instanceof SqlOrder).toBe(true);
       expect(order.Direction).toBe('desc');
     });
+
     it('should have a value paramter if we call using()', () => {
       const column = business.id.using(10);
       expect(column.Values).toBe(10);

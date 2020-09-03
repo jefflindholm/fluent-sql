@@ -1,11 +1,11 @@
 #!/usr/bin/env node
-const { commandLineParser } = require('simple-db-migrate/command-line');
-require('./string.js');
+import  { commandLineParser } from 'simple-db-migrate/command-line';
+import './string.extensions';
 
-let db;
+let db: any;
 
-async function configure(newConfig) {
-  config = {
+async function configure(newConfig: any) {
+  let config  = {
     dialect: process.env.MIGRATE_DIALECT || 'sqlite',
     database: process.env.MIGRATE_DATABASE || 'db.sqlite',
     verbose: false,
@@ -34,10 +34,10 @@ const db_config = commandLineParser(options);
 (async () => {
   await configure(db_config);
   const tables = await db.getTables();
-  await tables.forEach(async t => {
+  await tables.forEach(async (t: any) => {
     const columns = await db.getColumns(t.name);
     let sqlTable = `const ${t.name.toCamel()} = new SqlTable('${t.name}', [\n`
-    columns.forEach(c => {
+    columns.forEach((c: any) => {
       const col = `  {ColumnName: '${c.name}'},`
       sqlTable += `${col}${' '.repeat(30 - col.length)}// type: '${c.type}'\n`
     });

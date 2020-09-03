@@ -1,0 +1,10 @@
+src
+appveyor.yml
+db.sqlite
+distelli-manifest.yml
+tsconfig.json
+.gitignore
+.eslintignore
+.eslintrc.yml
+.editorconfig
+.travis.yml

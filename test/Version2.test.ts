@@ -1,17 +1,13 @@
 /* global describe it */
-import '../src/string';
-import { SqlQuery } from '../src/fluent-sql.js';
-import { SqlTable } from '../src/fluent-sql.js';
-import { SqlColumn } from '../src/fluent-sql.js';
-//import {SqlWhere} from '../src/fluent-sql.js';
-//import {SqlOrder} from '../src/fluent-sql.js';
-import { SqlJoin } from '../src/fluent-sql.js';
-import { SqlBuilder } from '../src/fluent-sql.js';
-import { setDefaultOptions, getDefaultOptions, postgresOptions, sqlServerOptions } from '../src/fluent-sql.js';
+import '../src/string.extensions';
+import SqlTable from '../src/sql-table';
+import SqlQuery, { setDefaultOptions, postgresOptions } from '../src/sql-query';
+import { SqlBuilder } from '../src/fluent-sql';
+import SqlJoin from '../src/sql-join';
 
 describe('version2 tests', () => {
   const businessColumns = [{ ColumnName: 'id' }, { ColumnName: 'business_name' }, { ColumnName: 'tax_id' }];
-  const business = new SqlTable({ TableName: 'business', columns: businessColumns });
+  const business = SqlTable.create({ TableName: 'business', Columns: businessColumns } as SqlTable);
 
   describe('Postgres options', () => {
     it('should build a query with $# for params for simple sql', () => {
@@ -105,12 +101,15 @@ LIMIT 1 OFFSET 0`;
 
   describe('missing tests', () => {
     describe('missing SqlJoin', () => {
-      it('should throw execption when created with something not a SqlColumn', () => {
-        expect(() => new SqlJoin({})).toThrowErrorMatchingSnapshot();
+      it('should throw execution when created with something not a SqlColumn', () => {
+        expect(() => new SqlJoin({} as any)).toThrowErrorMatchingSnapshot();
       });
-      it('should throw execption when using a non SqlColumn', () => {
+      it('should throw exception when using a non SqlColumn', () => {
         const join = new SqlJoin(business.businessName);
-        expect(() => join.using({})).toThrowErrorMatchingSnapshot();
+        expect(() => join.using({} as any)).toThrow({
+          location: 'SqlJoin::constructor',
+          message: 'trying to join on something not a SqlColumn',
+        } as any);
       });
     });
     describe('missing SqlColumn', () => {
@@ -140,7 +139,7 @@ LIMIT 1 OFFSET 0`;
       });
     });
     describe('missing SqlQuery', () => {
-      it('should throw an execption if there is no FROM', () => {
+      it('should throw an exception if there is no FROM', () => {
         const query = new SqlQuery().select(business.star());
         expect(() => query.genSql()).toThrowErrorMatchingSnapshot();
       });

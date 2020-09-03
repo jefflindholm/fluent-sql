@@ -1,26 +1,27 @@
 /* global describe it */
 import circularJSON from 'flatted';
-import '../src/string';
-import { SqlQuery } from '../src/fluent-sql';
-import { SqlTable } from '../src/fluent-sql';
-import { SqlColumn } from '../src/fluent-sql';
+import '../src/string.extensions';
+import SqlTable from '../src/sql-table';
+import SqlQuery, { setPostgres, setSqlServer } from '../src/sql-query';
+import SqlColumn from '../src/sql-column';
+import { BaseTable } from '../src/base-sql';
 import { SqlWhere } from '../src/fluent-sql';
-import { SqlOrder } from '../src/fluent-sql';
-import { SqlJoin } from '../src/fluent-sql';
-import { SqlBuilder } from '../src/fluent-sql';
-import { SqlError } from '../src/fluent-sql';
-import { setDefaultOptions, getDefaultOptions, setPostgres, setSqlServer } from '../src/fluent-sql';
+import { DbOptions } from '../src/sql-query';
+import { SqlError } from '../src/helpers';
 
 describe('fluent sql tests', () => {
   const businessColumns = [{ ColumnName: 'id' }, { ColumnName: 'business_name' }, { ColumnName: 'tax_id' }];
-  const business = new SqlTable({ TableName: 'business', columns: businessColumns });
-  const business_dba = new SqlTable('business_dba', [
-    { ColumnName: 'id' },
-    { ColumnName: 'business_id' },
-    { ColumnName: 'dba' },
-  ]);
-  const financeColumns = [{ name: 'id' }, { name: 'business_id' }, { name: 'balance' }, { name: 'finance_type' }];
-  const finance = new SqlTable({ name: 'finance', columns: financeColumns });
+  const business:BaseTable = SqlTable.create({ TableName: 'business', Columns: businessColumns } as SqlTable);
+  const business_dba: BaseTable = SqlTable.create({
+    TableName: 'business_dba',
+    Columns: [
+      { ColumnName: 'id' },
+      { ColumnName: 'business_id' },
+      { ColumnName: 'dba' },
+    ]
+  }as SqlTable);
+  const financeColumns = [{ ColumnName: 'id' }, { ColumnName: 'business_id' }, { ColumnName: 'balance' }, { ColumnName: 'finance_type' }];
+  const finance = SqlTable.create({ TableName: 'finance', Columns: financeColumns } as SqlTable);
 
   function getBusinessCols(tableName = 'business') {
     let columns = '';
@@ -158,7 +159,7 @@ describe('fluent sql tests', () => {
 
     it('should handle literals in the select', () => {
       const litString = 'select name from business_name where bid = [business].id and foo = :test';
-      const literal = new SqlColumn({ Literal: litString, Alias: 'name' }).using({ test: 123 });
+      const literal = SqlColumn.create({ literal: litString, alias: 'name' }).using({ test: 123 });
       const query = new SqlQuery().select(literal).from(business);
 
       const cmd = query.genSql();
@@ -289,7 +290,7 @@ describe('fluent sql tests', () => {
     it('should allow you to group by the selected columns', () => {
       let query = new SqlQuery()
         .select(business.taxId.groupBy())
-        .select(new SqlColumn(null, null, 'count(*)').as('count'))
+        .select(SqlColumn.create({ literal: 'count(*)' }).as('count'))
         .from(business);
 
       let cmd = query.genSql();
@@ -556,9 +557,9 @@ GROUP BY [business].tax_id
     });
 
     it('should handle a where clause with a literal with values', () => {
-      const lit = new SqlColumn({ Literal: 'SELECT business_id FROM business_dba WHERE dba_name like :foo' }).using({
-        foo: '%foo%',
-      });
+      const lit = SqlColumn
+          .create({ literal: 'SELECT business_id FROM business_dba WHERE dba_name like :foo' })
+          .using({ foo: '%foo%' });
 
       const query = new SqlQuery()
         .select(business.id, business.businessName)
@@ -579,7 +580,7 @@ GROUP BY [business].tax_id
     // TODO GROUP BY
 
     it('should throw an exception trying to AND at the same level as OR', () => {
-      let where;
+      let where: SqlWhere;
       const name = business.businessName;
       where = business.id.eq(10);
       where = where.or(name.eq(10));
@@ -588,7 +589,7 @@ GROUP BY [business].tax_id
     });
 
     it('should throw an exception trying to OR at the same level as AND', () => {
-      let where;
+      let where: SqlWhere;
       const name = business.businessName;
 
       where = business.id.eq(10);
@@ -780,18 +781,18 @@ FETCH NEXT 50 ROWS ONLY`;
   describe('SqlQuery error tests', () => {
     it('should throw if from is not a SqlTable', () => {
       const query = new SqlQuery();
-      expect(query.from.bind(query, {})).toThrow({
+      expect(query.from.bind(query, {} as any)).toThrow({
         location: 'SqlQuery::from',
         message: 'from clause must be a SqlTable',
-      });
+      } as any);
     });
 
     it('should throw if join is not a SqlJoin', () => {
       const query = new SqlQuery();
-      expect(query.join.bind(query, {})).toThrow({
+      expect(query.join.bind(query, {} as any)).toThrow({
         location: 'SqlQuery::join',
         message: 'clause is not a SqlJoin',
-      });
+      } as any);
     });
 
     it('should throw exception if it is orderby with something other than SqlOrder or SqlColumn', () => {
@@ -799,13 +800,13 @@ FETCH NEXT 50 ROWS ONLY`;
       expect(query.orderBy.bind(query, {})).toThrow({
         location: 'SqlOrder::constructor',
         message: 'did not pass a SqlColumn object',
-      });
+      } as any);
     });
   });
 
   describe('SqlQuery extras', () => {
     it('should take a masking function and call it for every column', () => {
-      const masking = function(column, literal) {
+      const masking = function(column: SqlColumn, literal: string) {
         if (!(column instanceof SqlColumn)) {
           throw { msg: 'not a SqlColumn' };
         }
@@ -826,12 +827,12 @@ FETCH NEXT 50 ROWS ONLY`;
     });
 
     it('should take a decrypting function and call it for every column', () => {
-      const decrypt = function(column, qualified) {
+      const decrypt = function(column: SqlColumn, qualified: boolean) {
         if (!(column instanceof SqlColumn)) {
           throw { msg: 'not a SqlColumn' };
         }
         if (qualified) {
-          return `DECRYPT(${column.qualifiedName()})`;
+          return `DECRYPT(${column.qualifiedName(new SqlQuery())})`;
         } else {
           return `DECRYPT(${column.ColumnName})`;
         }
@@ -850,15 +851,15 @@ FETCH NEXT 50 ROWS ONLY`;
       expect(cmd.fetchSql.trim()).toBe(`SELECT${columns}\nFROM\nbusiness as [business]`);
     });
     it('should take a decrypting function and call it for every column setting hasEncrypted to true if any are encrypted', () => {
-      const decrypt = function(column, qualified) {
+      const decrypt = function(column: SqlColumn, qualified: boolean) {
         if (!(column instanceof SqlColumn)) {
           throw { msg: 'not a SqlColumn' };
         }
-        if (column.columName === 'id') {
+        if (column.ColumnName === 'id') {
           return null;
         }
         if (qualified) {
-          return `DECRYPT(${column.qualifiedName()})`;
+          return `DECRYPT(${column.qualifiedName(new SqlQuery())})`;
         } else {
           return `DECRYPT(${column.ColumnName})`;
         }
@@ -868,7 +869,7 @@ FETCH NEXT 50 ROWS ONLY`;
       expect(cmd.hasEncrypted).toBe(true);
     });
     it('should take a decrypting function and call it for every column setting hasEncrypted to false if none are encrypted', () => {
-      const decrypt = function(column, qualified) {
+      const decrypt = function(column: SqlColumn, qualified: boolean) {
         if (!(column instanceof SqlColumn)) {
           throw { msg: 'not a SqlColumn' };
         }
@@ -879,7 +880,7 @@ FETCH NEXT 50 ROWS ONLY`;
       expect(cmd.hasEncrypted).toBe(false);
     });
     it('should take both a decrypting function and masking function and call them for every column', () => {
-      const decrypt = function(column, qualified) {
+      const decrypt = function(column: SqlColumn, qualified: boolean) {
         if (!(column instanceof SqlColumn)) {
           throw { msg: 'not a SqlColumn' };
         }
@@ -887,12 +888,12 @@ FETCH NEXT 50 ROWS ONLY`;
           return null;
         }
         if (qualified) {
-          return `DECRYPT(${column.qualifiedName()})`;
+          return `DECRYPT(${column.qualifiedName(new SqlQuery())})`;
         } else {
           return `DECRYPT(${column.ColumnName})`;
         }
       };
-      const masking = function(column, literal) {
+      const masking = function(column: SqlColumn, literal: string) {
         if (!(column instanceof SqlColumn)) {
           throw { msg: 'not a SqlColumn' };
         }
@@ -961,10 +962,10 @@ FETCH NEXT 50 ROWS ONLY`;
           .join(business_dba.on(business_dba.businessId).using(business.id));
 
         const order = 'id, name DESC, business_dba.id';
-        expect(query.applyOrder.bind(query, {}, order, null)).toThrow({
+        expect(() => query.applyOrder({} as any, order, null)).toThrow({
           location: 'SqlQuery::applyOrder',
           message: 'defaultSqlTable is not an instance of SqlTable',
-        });
+        } as any);
       });
     });
   });
@@ -972,7 +973,7 @@ FETCH NEXT 50 ROWS ONLY`;
   describe('SqlQuery options', () => {
     it('should allow you to override the namedValueMarker for variables', () => {
       const columns = getBusinessCols();
-      const query = new SqlQuery({ namedValueMarker: '@' })
+      const query = new SqlQuery({ namedValueMarker: '@' } as DbOptions)
         .select(business.star())
         .from(business)
         .where(business.id.eq('12345'));
@@ -983,7 +984,7 @@ FETCH NEXT 50 ROWS ONLY`;
 
     it('should allow you to turn off namedValues for variables', () => {
       const columns = getBusinessCols();
-      const query = new SqlQuery({ namedValues: false })
+      const query = new SqlQuery({ namedValues: false } as DbOptions)
         .select(business.star())
         .from(business)
         .where(business.id.eq('12345'));

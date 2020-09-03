@@ -1,6 +1,6 @@
 {
   "name": "fluent-sql",
-  "version": "2.6.1",
+  "version": "3.0.0",
   "description": "Fluent SQL lib",
   "main": "dist/fluent-sql.js",
   "directories": {
@@ -10,37 +10,36 @@
     "fluent-sql-gen": "dist/generate.js"
   },
   "peerDependencies": {
-    "pg": "^7.11.0",
+    "pg": "^8.3.3",
     "simple-db-migrate": "^0.7.0",
-    "sqlite3": "^4.0.9"
+    "sqlite3": "^5.0.0"
   },
   "dependencies": {},
   "devDependencies": {
-    "@babel/cli": "^7.5.0",
-    "@babel/core": "^7.2.2",
-    "@babel/preset-env": "^7.3.1",
-    "flatted": "^2.0.0",
-    "jest": "^24.1.0",
+    "@types/jest": "^26.0.13",
+    "@types/node": "^14.6.3",
+    "flatted": "^3.0.4",
+    "jest": "^26.4.2",
     "pre-commit": "^1.2.2",
     "shx": "^0.3.2",
     "simple-db-migrate": "^0.7.0",
-    "sqlite3": "^4.0.9"
+    "sqlite3": "^5.0.0",
+    "ts-jest": "^26.3.0",
+    "typescript": "^4.0.2"
   },
   "scripts": {
     "do-publish": "npm publish --registry=https://registry.npmjs.org",
-    "build": "babel src --out-dir dist",
+    "build-old": "babel src --out-dir dist",
+    "prebuild": "shx rm -rf dist/*",
+    "build": "tsc",
     "test": "jest test/* --watch",
-    "test:single": "jest test/*",
+    "test:once": "jest test/*",
     "coverage": "jest test/* --coverage",
-    "clean:dist": "shx rm -rf dist",
-    "predo-publish": "npm run build",
-    "postbuild": "npm run copy",
-    "copy": "shx cp src/generate.js dist",
-    "postcopy": "shx cp -r src/generate-lib dist"
+    "predo-publish": "npm run build"
   },
   "precommit": [
-    "test:single",
-    "clean:dist"
+    "test:once",
+    "prebuild"
   ],
   "repository": {
     "type": "git",
@@ -50,7 +49,8 @@
     "sql",
     "database",
     "fluent-api",
-    "fluent"
+    "fluent",
+    "typescript"
   ],
   "author": "",
   "license": "ISC",

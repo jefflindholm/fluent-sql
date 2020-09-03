@@ -1,0 +1,5 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`version2 tests missing tests missing SqlJoin should throw execution when created with something not a SqlColumn 1`] = `"trying to join on something not a SqlColumn"`;
+
+exports[`version2 tests missing tests missing SqlQuery should throw an exception if there is no FROM 1`] = `"No FROM in query"`;

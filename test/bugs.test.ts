@@ -1,24 +1,27 @@
 /* global describe it */
-import '../src/string';
-import { SqlQuery } from '../src/fluent-sql.js';
-import { SqlTable } from '../src/fluent-sql.js';
-import { SqlColumn } from '../src/fluent-sql.js';
-//import {SqlWhere} from '../src/fluent-sql.js';
-//import {SqlOrder} from '../src/fluent-sql.js';
-import { SqlJoin } from '../src/fluent-sql.js';
-import { SqlBuilder } from '../src/fluent-sql.js';
-import { setDefaultOptions, getDefaultOptions } from '../src/fluent-sql.js';
+import '../src/string.extensions';
+import { BaseTable } from '../src/base-sql';
+import SqlTable from '../src/sql-table';
+import SqlColumn from '../src/sql-column';
+import SqlQuery from '../src/sql-query';
 
 describe('reported bugs', () => {
   describe('or select generating wrong thing', () => {
     it('should handle an or in the where clause fine', () => {
-      const User = new SqlTable({
+      const columns = [
+        { ColumnName: 'id' },
+        { ColumnName: 'username' },
+        { ColumnName: 'password' },
+        { ColumnName: 'email' },
+      ];
+      const User: BaseTable = SqlTable.create({
         TableName: 'account',
-        columns: [{ ColumnName: 'id' }, { ColumnName: 'username' }, { ColumnName: 'password' }, { ColumnName: 'email' }],
-      });
+        Columns: columns,
+      } as SqlTable)
+
       const email = '';
       const username = 'jlindholm';
-      const query = new SqlQuery()
+      const query = new SqlQuery(null)
         .from(User)
         .select(User.star())
         .where(User.email.eq(email)

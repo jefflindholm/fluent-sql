@@ -15,11 +15,6 @@
    ecmaFeatures:
     jsx: true
 
-  emcaFeatures:
-      forOf: true
-      jsx: true
-      es6: true
-
   globals:
     __DEV__: true
     __SERVER__: true

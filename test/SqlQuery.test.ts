@@ -20,8 +20,8 @@ describe('fluent sql tests', () => {
       { ColumnName: 'dba' },
     ]
   }as SqlTable);
-  const financeColumns = [{ ColumnName: 'id' }, { ColumnName: 'business_id' }, { ColumnName: 'balance' }, { ColumnName: 'finance_type' }];
-  const finance = SqlTable.create({ TableName: 'finance', Columns: financeColumns } as SqlTable);
+  const financeColumns = [{ name: 'id' }, { name: 'business_id' }, { name: 'balance' }, { name: 'finance_type' }];
+  const finance:BaseTable = new SqlTable({ TableName: 'finance', Columns: financeColumns });
 
   function getBusinessCols(tableName = 'business') {
     let columns = '';

@@ -7,23 +7,24 @@ import SqlOrder from '../src/sql-order';
 import { BaseTable } from '../src/base-sql';
 
 describe('fluent sql tests', () => {
+
+  // 3 ways to create SqlTables
   const businessColumns = [
     { ColumnName: 'id' },
     { ColumnName: 'business_name' },
     { ColumnName: 'tax_id' }
   ];
-  const business: BaseTable = SqlTable.create({
-    TableName: 'business',
-    Columns: businessColumns
-  } as SqlTable);
-  const business_dba: BaseTable = SqlTable.create({
-    TableName: 'business_dba',
-    Columns: [
+  const business: BaseTable = new SqlTable({ TableName: 'business', Columns: businessColumns });
+
+  const business_dba: BaseTable = new SqlTable({
+    name: 'business_dba',
+    columns: [
       { ColumnName: 'id' },
       { ColumnName: 'business_id' },
       { ColumnName: 'dba' },
     ]
-  } as SqlTable);
+  });
+
   const financeColumns = [
     { ColumnName: 'id' },
     { ColumnName: 'business_id' },

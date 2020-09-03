@@ -1,4 +1,4 @@
-import './string.js';
+import './string.extensions';
 
 import SqlTable from './sql-table';
 import SqlWhere from './sql-where';
@@ -17,7 +17,7 @@ export interface SearchDetails {
   pageSize: number;
 }
 
-function updateDelete(operation: string, sqlTable: SqlTable, details: any, encryptFunction: any) {
+function updateDelete(operation: string, sqlTable: BaseTable, details: any, encryptFunction: any) {
   if (!(sqlTable instanceof SqlTable)) {
     throw {
       location: 'SqlBuilder::update',
@@ -87,7 +87,7 @@ function updateDelete(operation: string, sqlTable: SqlTable, details: any, encry
   };
 }
 
-function buildWhere(filterString: string, sqlTable: SqlTable): SqlWhere {
+function buildWhere(filterString: string, sqlTable: BaseTable): SqlWhere {
   let where: SqlWhere | null = null;
   if (filterString) {
     const ors = filterString.split(';');
@@ -129,13 +129,13 @@ function buildWhere(filterString: string, sqlTable: SqlTable): SqlWhere {
 }
 
 export default class SqlBuilder {
-  static update(sqlTable: SqlTable, details: any, encryptFunction: any) {
+  static update(sqlTable: BaseTable, details: any, encryptFunction?: any) {
     return updateDelete('update', sqlTable, details, encryptFunction);
   }
-  static delete(sqlTable: SqlTable, details: any, encryptFunction: any) {
+  static delete(sqlTable: BaseTable, details: any, encryptFunction?: any) {
     return updateDelete('delete', sqlTable, details, encryptFunction);
   }
-  static insert(sqlTable: SqlTable, details: any, newId: string, encryptFunction: any) {
+  static insert(sqlTable: BaseTable, details: any, newId?: any, encryptFunction?: any) {
     if (!(sqlTable instanceof SqlTable)) {
       throw {
         location: 'SqlBuilder::insert',
@@ -204,7 +204,7 @@ export default class SqlBuilder {
    *  - pageSize = how much data per page defaults to 50
    */
 
-  static search(sqlTable: SqlTable, searchDetails: SearchDetails) {
+  static search(sqlTable: BaseTable, searchDetails: SearchDetails) {
     const query = new SqlQuery(null);
     query.from(sqlTable);
     const searchColumns = searchDetails.columns || searchDetails.select;

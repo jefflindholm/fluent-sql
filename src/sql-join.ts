@@ -1,11 +1,12 @@
-import './string.js';
+import './string.extensions';
 
 import SqlColumn from './sql-column';
+import { SqlError } from './helpers';
 
 export default class SqlJoin {
   constructor(sqlColumn: SqlColumn) {
     if (!(sqlColumn instanceof SqlColumn)) {
-      throw { location: 'SqlJoin::constructor', message: 'trying to join on something not a SqlColumn' }; // eslint-disable-line
+      throw new SqlError('SqlJoin::constructor', 'trying to join on something not a SqlColumn');
     }
     this._from = sqlColumn;
   }

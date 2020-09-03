@@ -4,6 +4,7 @@ import SqlColumn from './sql-column';
 import SqlJoin from './sql-join';
 import SqlQuery from './sql-query';
 import SqlWhere from './sql-where';
+import { SqlError } from './helpers';
 
 
 export interface Options {
@@ -11,6 +12,10 @@ export interface Options {
 }
 
 export default class SqlTable implements BaseTable {
+
+  static create(table: SqlTable, alias?: string): BaseTable {
+    return new SqlTable(table.TableName, table.Columns, table.Schema, alias);
+  }
   /*
    * @param {} - either another SqlTable, alias
    *             or TableName, array of columns
@@ -21,18 +26,12 @@ export default class SqlTable implements BaseTable {
    *          columns: [{ColumnName: 'id'}, {ColumnName: 'username'}, {ColumnName: 'password'}]
    *      }, 'u');
    */
-  constructor(name: string, columns: BaseColumn[], schema: string, alias?: string) {
+  constructor(name: string, columns?: BaseColumn[], schema?: string, alias?: string) {
     this._tableName = name;
-    this._schema = schema;
+    this._schema = schema || '';
     this._alias = alias || this._tableName;
     if (columns) {
-      columns.forEach(c => {
-        const name = c.ColumnName;
-        const prop = name.toCamel();
-        const col = new SqlColumn(this, name, c.Literal, false, [], null, false, null);
-        this.Columns.push(col);
-        (this as BaseTable)[prop] = col;
-      }, this);
+      this.Columns = columns;
     }
   }
   _schema: string;
@@ -62,7 +61,18 @@ export default class SqlTable implements BaseTable {
     return this._columns;
   }
   set Columns(v) {
-    this._columns = v;
+    if (v) {
+      v.forEach(c => {
+        if (!c.ColumnName && !c.Alias) {
+          throw new SqlError('SqlTable::Columns(set)', 'setting a column without a name or alias');
+        }
+        const name = c.ColumnName || c.Alias || ''; // should never be blank but TS did not like it without
+        const prop = name.toCamel();
+        const col = new SqlColumn(this, name, c.Literal, undefined, undefined, undefined, undefined, c.Alias);
+        this._columns.push(col);
+        (this as BaseTable)[prop] = col;
+      }, this);
+    }
   }
   /* eslint-enable */
 
@@ -76,7 +86,7 @@ export default class SqlTable implements BaseTable {
     return this.Alias || this.TableName;
   }
   as(alias: string) {
-    const table = CreateTable(this, alias);
+    const table = SqlTable.create(this, alias);
     table.Alias = alias;
     return table;
   }
@@ -96,7 +106,7 @@ export default class SqlTable implements BaseTable {
     return query;
   }
   on(sqlColumn: SqlColumn) {
-    if (sqlColumn.Table !== this) {
+    if (sqlColumn?.Table !== this) {
       throw { location: 'SqlTable::on', message: 'trying to build join on column not from this table' }; //eslint-disable-line
     }
     return new SqlJoin(sqlColumn);
@@ -111,7 +121,7 @@ export default class SqlTable implements BaseTable {
   }
 
   insert(data: any, options: any) {
-    const columns:BaseColumn[] = [];
+    const columns: BaseColumn[] = [];
     const values: any = {};
     Object.entries(data).forEach(([k, v]) => {
       for (let i = 0; i < this.Columns.length; i++) {
@@ -132,7 +142,7 @@ export default class SqlTable implements BaseTable {
     return { sql, values };
   }
 
-  update(data: any, options:Options = {id: null}) {
+  update(data: any, options: Options = { id: null }) {
     const id = options.id || 'id';
     const keyData = {};
     const values: any = {};
@@ -155,8 +165,4 @@ export default class SqlTable implements BaseTable {
     const sql = `UPDATE ${this.TableName} SET ${columnString} WHERE ${keyString}`;
     return { sql, values };
   }
-}
-
-function CreateTable(table: SqlTable, alias: string): SqlTable {
-  return new SqlTable(table.TableName, table.Columns, table.Schema, alias);
 }

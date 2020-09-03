@@ -1,15 +1,14 @@
 /* global describe it */
-import '../src/string';
-import { SqlQuery } from '../src/fluent-sql.js';
-import { SqlTable } from '../src/fluent-sql.js';
-import { SqlColumn } from '../src/fluent-sql.js';
-import { SqlJoin } from '../src/fluent-sql.js';
-import { SqlBuilder } from '../src/fluent-sql.js';
-import { setDefaultOptions, getDefaultOptions, setPostgres, setSqlServer } from '../src/fluent-sql.js';
+import '../src/string.extensions';
+import SqlTable from '../src/sql-table';
+import { BaseTable } from '../src/base-sql';
+import SqlColumn from '../src/sql-column';
+import SqlQuery, { setDefaultOptions, setPostgres, setSqlServer, DbOptions } from '../src/sql-query';
 
-const User = new SqlTable({
+
+const User: BaseTable = SqlTable.create({
   TableName: 'users',
-  columns: [
+  Columns: [
     { ColumnName: 'id' },
     { ColumnName: 'gender' },
     { ColumnName: 'title' },
@@ -21,7 +20,7 @@ const User = new SqlTable({
     { ColumnName: 'email' },
     { ColumnName: 'dob' },
   ],
-});
+} as SqlTable);
 
 describe('test record set paging', () => {
   describe('sql query', () => {
@@ -46,9 +45,9 @@ ${baseSql}
 ) base_query
 ) as detail_query WHERE Paging_RowNumber BETWEEN 0 AND 20`;
 
-      setDefaultOptions({ recordSetPaging: true });
+      setDefaultOptions({ recordSetPaging: true } as DbOptions);
       const email = 'jeff@foo.com';
-      const query = new SqlQuery()
+      const query = new SqlQuery(null)
         .from(User)
         .select(User.star())
         .where(User.email.eq(email))
@@ -56,7 +55,7 @@ ${baseSql}
 
       const sql = query.genSql();
       expect(sql.fetchSql).toBe(expected);
-      setDefaultOptions({ recordSetPaging: false });
+      setDefaultOptions({ recordSetPaging: false } as DbOptions);
     });
 
     it('should create paging with the old record set format pg Schema', () => {
@@ -80,9 +79,9 @@ ${baseSql}
 ) base_query
 ) as detail_query WHERE Paging_RowNumber BETWEEN 0 AND 20`;
       setPostgres();
-      setDefaultOptions({ recordSetPaging: true });
+      setDefaultOptions({ recordSetPaging: true } as DbOptions);
       const email = 'jeff@foo.com';
-      const query = new SqlQuery()
+      const query = new SqlQuery(null)
         .from(User)
         .select(User.star())
         .where(User.email.eq(email))

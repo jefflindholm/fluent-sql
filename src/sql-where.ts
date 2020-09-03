@@ -1,4 +1,4 @@
-import './string.extensions.js';
+import './string.extensions';
 import { BaseColumn, BaseWhere } from './base-sql';
 import { SqlError } from './helpers';
 

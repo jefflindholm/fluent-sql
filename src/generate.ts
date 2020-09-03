@@ -1,6 +1,6 @@
 #!/usr/bin/env node
-const { commandLineParser } = require('simple-db-migrate/command-line');
-require('./string.js');
+import  { commandLineParser } from 'simple-db-migrate/command-line';
+import './string.extensions';
 
 let db: any;
 

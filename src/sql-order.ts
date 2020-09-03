@@ -1,9 +1,9 @@
-import './string.js';
+import './string.extensions';
 
 import SqlColumn from './sql-column';
 
 export default class SqlOrder {
-  constructor(sqlObject: SqlColumn | SqlOrder, dir: string = "ASC") {
+  constructor(sqlObject: SqlColumn | SqlOrder, dir: string | null = null) {
 
     if (!(sqlObject instanceof SqlOrder) && !(sqlObject instanceof SqlColumn)) {
       throw { location: 'SqlOrder::constructor', message: 'did not pass a SqlColumn object' }; // eslint-disable-line

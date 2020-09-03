@@ -1,4 +1,4 @@
-import './string.extensions.js';
+import './string.extensions';
 import { BaseColumn, BaseTable } from './base-sql';
 import SqlOrder from './sql-order';
 import SqlQuery from './sql-query';
@@ -28,7 +28,23 @@ export class SqlAggregate {
 }
 
 export default class SqlColumn implements BaseColumn {
-  constructor(table: BaseTable, name: string, literal: string | null, not: boolean, values: string[], aggregate: SqlAggregate | null, grouped: boolean, alias: string | null) {
+
+  static create({ column, alias, table, name, literal }: { column?: SqlColumn, alias?: string, table?: BaseTable, name?: string, literal?: string }): SqlColumn {
+    if (column) {
+      return new SqlColumn(column.Table, column.ColumnName, column.Literal, column.Not, column.Values, column.Aggregate, column.Grouped, alias || column.Alias);
+    } else if (table && name) {
+      return new SqlColumn(table, name);
+    } else if (literal) {
+      return new SqlColumn(null, undefined, literal, undefined, undefined, undefined, undefined, alias);
+    }
+    throw new SqlError('SqlColumn.create', 'no values to create a good column');
+  }
+
+
+  constructor(table: BaseTable | null, name?: string, literal?: string, not?: boolean, values?: string[], aggregate?: SqlAggregate, grouped?: boolean, alias?: string) {
+    if (!(table instanceof SqlTable) && !literal) {
+      throw new SqlError('SqlColumn::constructor', 'must construct using a SqlTable or literal');
+    }
     this._table = table;
     this._columnName = name;
     this._literal = literal;
@@ -36,23 +52,26 @@ export default class SqlColumn implements BaseColumn {
     this._values = values;
     this._aggregate = aggregate;
     this._grouped = grouped;
-    this._alias = alias || this._columnName.toCamel();
+    this._alias = alias || (this._columnName && this._columnName.toCamel());
   }
 
-  _table: BaseTable;
-  _columnName: string;
-  _literal: string | null;
-  _alias: string | null;
-  _not: boolean;
-  _values: string[] = [];
-  _grouped: boolean;
-  _aggregate: SqlAggregate | null = null;
+  _table: BaseTable | null;
+  _columnName: string | undefined;
+  _literal: string | undefined;
+  _alias: string | undefined;
+  _not: boolean | undefined;
+  _values: any | undefined = [];
+  _grouped: boolean | undefined;
+  _aggregate: SqlAggregate | undefined;
 
   // aggregate functions
   aggregate(op: string): SqlAggregate {
-    const column = CreateColumn({ column: this });
-    column.Aggregate = new SqlAggregate(column.Table, column, op);
-    return column.Aggregate;
+    const column: BaseColumn = SqlColumn.create({ column: this });
+    if (column.Table) {
+      column.Aggregate = new SqlAggregate(column.Table, column, op);
+      return column.Aggregate;
+    }
+    throw new SqlError('SqlColumn::aggregate', 'column has null SqlTable');
   }
   avg() {
     return this.aggregate('AVG');
@@ -94,24 +113,34 @@ export default class SqlColumn implements BaseColumn {
   }
 
   qualifiedName(sqlQuery: SqlQuery) {
-    return this.Literal || `${this.Table.Alias.sqlEscape(sqlQuery, 'table-alias')}.${this.ColumnName}`;
+    if (this.Literal) {
+      return this.Literal;
+    } else if (this.Table) {
+      return `${this.Table.Alias.sqlEscape(sqlQuery, 'table-alias')}.${this.ColumnName}`;
+    }
+    throw new SqlError('SqlColumn::qualifiedName', 'Literal and Table cannot both be null in SqlQuery');
   }
   as(alias: string) {
-    const col = CreateColumn({ column: this, alias });
+    const col = SqlColumn.create({ column: this, alias });
     return col;
   }
-  using(values: string[]) {
-    const col = CreateColumn({ column: this, alias: this.Alias });
+  using(values: any) {
+    const col = SqlColumn.create({ column: this, alias: this.Alias });
     col.Values = values;
     return col;
   }
   groupBy() {
-    const col = CreateColumn({ column: this, alias: this.Alias });
+    const col = SqlColumn.create({ column: this, alias: this.Alias });
     col._grouped = true;
     return col;
   }
 
-  get TableName() { return this.Table.TableName; }
+  get TableName() {
+    if (this.Table) {
+      return this.Table.TableName;
+    }
+    throw new SqlError('SqlColumn::TableName', 'Table is NULL');
+  }
 
   get Table() { return this._table; }
   set Table(v) { this._table = v; }
@@ -203,16 +232,8 @@ export default class SqlColumn implements BaseColumn {
     return new SqlOrder(this, dir);
   }
   not() {
-    const col = CreateColumn({ column: this, alias: this.Alias });
+    const col = SqlColumn.create({ column: this, alias: this.Alias });
     col.Not = true;
     return col;
   }
-}
-export function CreateColumn({ column, alias, table, col }: {column?: SqlColumn, alias?: string|null, table?: SqlTable, col?: string}): SqlColumn {
-  if (column) {
-    return new SqlColumn(column.Table, column.ColumnName, column.Literal, column.Not, column.Values, column.Aggregate, column.Grouped, alias || column.Alias);
-  } else if (table && col) {
-    return new SqlColumn(table, col, '', false, [], null, false, col);
-  }
-  throw new SqlError('CreateColumn', 'no values to create a good column');
 }

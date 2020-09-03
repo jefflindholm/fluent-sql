@@ -1,4 +1,3 @@
-
 interface String {
   toCamel(): string;
   trim(): string;
@@ -43,14 +42,4 @@ String.prototype.toPascal = function toPascal()  {
 };
 String.prototype.contains = function contains (s) {
     return this.indexOf(s) > -1;
-};
-
-String.prototype.sqlEscape = function escape(sqlQuery: any, level: any) {
-  let query = null;
-  if (!sqlQuery || !sqlQuery.sqlEscape || typeof sqlQuery.sqlEscape !== 'function') {
-    query = sqlQuery.create();
-  } else {
-    query = sqlQuery;
-  }
-  return query.sqlEscape(this, level);
 };

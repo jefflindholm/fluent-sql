@@ -1,27 +1,24 @@
 //import expect from 'chai';
 /* global describe it */
-import '../src/string';
-import { SqlQuery } from '../src/fluent-sql.js';
-import { SqlTable } from '../src/fluent-sql.js';
-import { SqlColumn } from '../src/fluent-sql.js';
-import { SqlWhere } from '../src/fluent-sql.js';
-import { SqlOrder } from '../src/fluent-sql.js';
-import { SqlJoin } from '../src/fluent-sql.js';
-import { SqlBuilder } from '../src/fluent-sql.js';
-import { setDefaultOptions, getDefaultOptions } from '../src/fluent-sql.js';
+import '../src/string.extensions';
+import SqlTable from '../src/sql-table';
+import SqlColumn from '../src/sql-column';
+import { BaseTable } from '../src/base-sql';
 
 //const sql = require('../src/fluent-sql.js');
 
 describe('fluent sql tests', () => {
   const businessColumns = [{ ColumnName: 'id' }, { ColumnName: 'business_name' }, { ColumnName: 'tax_id' }];
-  const business = new SqlTable({ TableName: 'business', columns: businessColumns });
-  const business_dba = new SqlTable('business_dba', [
-    { ColumnName: 'id' },
-    { ColumnName: 'business_id' },
-    { ColumnName: 'dba' },
-  ]);
-  const financeColumns = [{ name: 'id' }, { name: 'business_id' }, { name: 'balance' }, { name: 'finance_type' }];
-  const finance = new SqlTable({ name: 'finance', columns: financeColumns });
+  const business = SqlTable.create({ TableName: 'business', Columns: businessColumns } as SqlTable);
+  const business_dba = SqlTable.create({
+    TableName: 'business_dba', Columns: [
+      { ColumnName: 'id' },
+      { ColumnName: 'business_id' },
+      { ColumnName: 'dba' },
+    ]
+  } as SqlTable);
+  const financeColumns = [{ ColumnName: 'id' }, { ColumnName: 'business_id' }, { ColumnName: 'balance' }, { ColumnName: 'finance_type' }];
+  const finance = SqlTable.create({ TableName: 'finance', Columns: financeColumns } as SqlTable);
 
   function getBusinessCols() {
     let columns = '';
@@ -120,13 +117,13 @@ describe('fluent sql tests', () => {
       expect(business.on.bind(business, {})).toThrow({
         location: 'SqlTable::on',
         message: 'trying to build join on column not from this table',
-      });
+      } as any);
     });
   });
 
   describe('SqlTable tests second round', () => {
     it('should construct correctly from a name and array of columns', () => {
-      function legalColumns() {
+      function legalColumns(): any[] {
         const arr = [
           { name: 'business_type' },
           {
@@ -135,15 +132,16 @@ describe('fluent sql tests', () => {
           },
           { name: 'id' },
         ];
-        arr.forEach(a => {
+        arr.forEach((a: any) => {
           a.Alias = a.name.toCamel(); // eslint-disable-line no-param-reassign
+          a.ColumnName = a.name;
         });
         return arr;
       }
-      const table = new SqlTable({
+      const table = SqlTable.create({
         TableName: 'document_templates',
         Columns: legalColumns(),
-      });
+      } as SqlTable);
       expect(table.Columns.length).toBe(3);
       expect(table.businessType.ColumnName).toBe('business_type');
       expect(table.businessTypeFormatted.Literal).toBe("REPLACE(COALESCE(business_type, 'Unknown Business'), '_', ' ')");

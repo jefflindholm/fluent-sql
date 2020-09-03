@@ -19,6 +19,7 @@
     "@babel/cli": "^7.5.0",
     "@babel/core": "^7.2.2",
     "@babel/preset-env": "^7.3.1",
+    "@types/jest": "^26.0.12",
     "@types/node": "^14.6.2",
     "flatted": "^2.0.0",
     "jest": "^24.1.0",
@@ -26,6 +27,7 @@
     "shx": "^0.3.2",
     "simple-db-migrate": "^0.7.0",
     "sqlite3": "^4.0.9",
+    "ts-jest": "^26.3.0",
     "typescript": "^4.0.2"
   },
   "scripts": {
@@ -38,7 +40,8 @@
     "predo-publish": "npm run build",
     "postbuild": "npm run copy",
     "copy": "shx cp src/generate.js dist",
-    "postcopy": "shx cp -r src/generate-lib dist"
+    "postcopy": "shx cp -r src/generate-lib dist",
+    "test:file": "jest"
   },
   "precommit": [
     "test:single",

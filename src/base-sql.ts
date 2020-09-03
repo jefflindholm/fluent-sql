@@ -1,7 +1,7 @@
 export interface BaseColumn {
-  ColumnName: string;
-  Alias: string | null;
-  Literal: string | null;
+  ColumnName: string | undefined;
+  Alias: string | undefined;
+  Literal: string | undefined;
   [key: string]: any;
 }
 export interface BaseTable {

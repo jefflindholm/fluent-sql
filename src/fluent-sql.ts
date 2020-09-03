@@ -1,4 +1,4 @@
-import './string.js';
+import './string.extensions';
 
 import SqlQuery from './sql-query';
 

@@ -57,5 +57,7 @@
   "bugs": {
     "url": "https://github.com/jefflindholm/fluent-sql/issues"
   },
-  "homepage": "https://github.com/jefflindholm/fluent-sql#readme"
+  "homepage": "https://github.com/jefflindholm/fluent-sql#readme",
+  "engines": {"node": ">=10.0"},
+  "engineStrict": true
 }

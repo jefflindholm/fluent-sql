@@ -8,14 +8,16 @@ import SqlQuery from '../src/sql-query';
 describe('reported bugs', () => {
   describe('or select generating wrong thing', () => {
     it('should handle an or in the where clause fine', () => {
-      const User: BaseTable = new SqlTable('account');
       const columns = [
         { ColumnName: 'id' },
         { ColumnName: 'username' },
         { ColumnName: 'password' },
         { ColumnName: 'email' },
       ];
-      User.Columns = columns;
+      const User: BaseTable = SqlTable.create({
+        TableName: 'account',
+        Columns: columns,
+      } as SqlTable)
 
       const email = '';
       const username = 'jlindholm';

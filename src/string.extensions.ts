@@ -6,7 +6,7 @@ interface String {
   toPascal(): string;
   capitalizeFirst(): string;
   contains(s: string): boolean;
-  sqlEscape(sqlQuery: any, level: any): string;
+  sqlEscape(sqlQuery?: any, level?: any): string;
 }
 String.prototype.toCamel = function toCamel() {
     return this.replace(/[\-_][a-z]/g, (m) => {

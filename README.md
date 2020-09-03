@@ -220,6 +220,8 @@ https://www.npmjs.com/package/simple-db-migrate
 
 - did a terrible job up till now on this
 
+- 3.0.0
+  - added TypeScript, entire source is now ts
 - 2.6.0
   - added 'fluent-sql-gen' to create `SqlTable` classes from database
 - 2.5.0

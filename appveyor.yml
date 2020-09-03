@@ -11,7 +11,7 @@ install:
 test_script:
     - node --version
     - npm --version
-    - npm run test:single
+    - npm run test:once
 
 build: off
 

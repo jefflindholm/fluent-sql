@@ -26,12 +26,23 @@ export default class SqlTable implements BaseTable {
    *          columns: [{ColumnName: 'id'}, {ColumnName: 'username'}, {ColumnName: 'password'}]
    *      }, 'u');
    */
-  constructor(name: string, columns?: BaseColumn[], schema?: string, alias?: string) {
-    this._tableName = name;
-    this._schema = schema || '';
-    this._alias = alias || this._tableName;
-    if (columns) {
-      this.Columns = columns;
+  constructor(name: any, columns?: BaseColumn[], schema?: string, alias?: string) {
+    if (name instanceof SqlTable) {
+      this._tableName = name.TableName;
+      this._schema = name.Schema;
+      this._alias = name.Alias;
+      this.Columns = name.Columns;
+    } else if ((name.TableName || name.name) && (name.Columns || name.columns)) {
+      this._tableName = name.TableName || name.name;
+      this.Columns = name.columns || name.Columns;
+      this._schema = '';
+    } else {
+      this._tableName = name;
+      this._schema = schema || '';
+      this._alias = alias || this._tableName;
+      if (columns) {
+        this.Columns = columns;
+      }
     }
   }
   private _schema: string;
@@ -63,10 +74,10 @@ export default class SqlTable implements BaseTable {
   set Columns(v) {
     if (v) {
       v.forEach(c => {
-        if (!c.ColumnName && !c.Alias) {
+        if (!c.ColumnName && !c.Alias && !c.name) {
           throw new SqlError('SqlTable::Columns(set)', 'setting a column without a name or alias');
         }
-        const name = c.ColumnName || c.Alias || ''; // should never be blank but TS did not like it without
+        const name = c.ColumnName || c.Alias || c.name || ''; // should never be blank but TS did not like it without
         const prop = name.toCamel();
         const col = new SqlColumn(this, name, c.Literal, undefined, undefined, undefined, undefined, c.Alias);
         this._columns.push(col);

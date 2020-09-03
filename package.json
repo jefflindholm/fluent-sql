@@ -1,6 +1,6 @@
 {
   "name": "fluent-sql",
-  "version": "3.0.0",
+  "version": "3.0.1",
   "description": "Fluent SQL lib",
   "main": "dist/fluent-sql.js",
   "directories": {

@@ -3,9 +3,6 @@
 import '../src/string.extensions';
 import SqlTable from '../src/sql-table';
 import SqlColumn from '../src/sql-column';
-import { BaseTable } from '../src/base-sql';
-
-//const sql = require('../src/fluent-sql.js');
 
 describe('fluent sql tests', () => {
   const businessColumns = [{ ColumnName: 'id' }, { ColumnName: 'business_name' }, { ColumnName: 'tax_id' }];

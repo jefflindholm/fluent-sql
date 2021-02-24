@@ -6,7 +6,6 @@ import SqlOrder from './sql-order';
 import SqlTable from './sql-table';
 import SqlWhere from './sql-where';
 import { processArgs, SqlError } from './helpers';
-import { truncate } from 'fs';
 import { BaseQuery, eEscapeLevels, BaseTable } from './base-sql';
 
 export interface DbOptions {
@@ -243,7 +242,7 @@ export default class SqlQuery implements BaseQuery {
     }, ...args); // eslint-disable-line brace-style
     return this;
   }
-  /*
+  /**
    * @param {defaultSqlTable} - table to use if the order string does not contain qualified column names
    * @param {orderString} - order string in the form col dir, col dir, ... col = ColumnName?.sqlEscape(this, eEscapeLevels.columnName) or tableName.ColumnName?.sqlEscape(this, eEscapeLevels.columnName), dir = ASC or DESC
    * @param {overrides} - ColumnName?.sqlEscape(this, eEscapeLevels.columnName): [array of SqlColumns] useful when someone wants to order by 'name' but there are multiple names in the select
@@ -370,7 +369,7 @@ export default class SqlQuery implements BaseQuery {
     }
     return this;
   }
-  /*
+  /**
    * Generates the SQL from the built up query
    * @param {decryptFunction} function that takes (SqlColumn, boolean - should this use the qualified name, usually true)
    *                           return null if not decrypted

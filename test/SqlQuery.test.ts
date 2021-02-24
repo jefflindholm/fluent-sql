@@ -1,5 +1,6 @@
 /* global describe it */
-import circularJSON from 'flatted';
+// !uncomment for dumps
+// import circularJSON from 'flatted';
 import '../src/string.extensions';
 import SqlTable from '../src/sql-table';
 import SqlQuery, { setPostgres, setSqlServer } from '../src/sql-query';

@@ -7,7 +7,6 @@ export default class SqlOrder {
 
     if (!(sqlObject instanceof SqlOrder) && !(sqlObject instanceof SqlColumn)) {
       throw { location: 'SqlOrder::constructor', message: 'did not pass a SqlColumn object' }; // eslint-disable-line
-
     }
     if (sqlObject instanceof SqlOrder) {
       this._column = sqlObject.Column;

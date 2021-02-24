@@ -10,7 +10,7 @@ export interface BaseTable {
   Columns: BaseColumn[];
   Schema: string | null;
   [key: string]: any;
-  getTable(query: BaseQuery | null): string;
+  getTable(query?: BaseQuery | null): string;
 }
 export interface BaseWhere {
   Column: BaseColumn | null;

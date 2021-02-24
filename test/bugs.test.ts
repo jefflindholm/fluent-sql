@@ -2,7 +2,6 @@
 import '../src/string.extensions';
 import { BaseTable } from '../src/base-sql';
 import SqlTable from '../src/sql-table';
-import SqlColumn from '../src/sql-column';
 import SqlQuery from '../src/sql-query';
 
 describe('reported bugs', () => {
@@ -17,8 +16,7 @@ describe('reported bugs', () => {
       const User: BaseTable = SqlTable.create({
         TableName: 'account',
         Columns: columns,
-      } as SqlTable)
-
+      } as SqlTable);
       const email = '';
       const username = 'jlindholm';
       const query = new SqlQuery(null)

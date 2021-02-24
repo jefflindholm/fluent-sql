@@ -2,7 +2,6 @@
 import '../src/string.extensions';
 import SqlTable from '../src/sql-table';
 import { BaseTable } from '../src/base-sql';
-import SqlColumn from '../src/sql-column';
 import SqlQuery, { setDefaultOptions, setPostgres, setSqlServer, DbOptions } from '../src/sql-query';
 
 

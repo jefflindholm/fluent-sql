@@ -3,7 +3,6 @@ import './string.extensions';
 import SqlTable from './sql-table';
 import SqlWhere from './sql-where';
 import { BaseTable } from './base-sql';
-import { SqlError } from './helpers';
 import SqlQuery, {
   getDefaultOptions
 } from './sql-query';
@@ -16,8 +15,18 @@ export interface SearchDetails {
   pageNo: number;
   pageSize: number;
 }
-
-function updateDelete(operation: string, sqlTable: BaseTable, details: any, encryptFunction: any) {
+export enum udOperation {
+  update,
+  delete
+}
+// TODO: make encryptFunction have a better signature
+/**
+* @param operation - update/delete
+* @param BaseTable - SqlTable to perform operation on
+* @param details - object of columns with values { id: 1, name: 'jeff' }
+* @param encryptFunction - will be executed on each value to add if present (columnName, value)
+**/
+function updateDelete(operation: udOperation, sqlTable: BaseTable, details: any, encryptFunction: any) {
   if (!(sqlTable instanceof SqlTable)) {
     throw {
       location: 'SqlBuilder::update',
@@ -34,7 +43,7 @@ function updateDelete(operation: string, sqlTable: BaseTable, details: any, encr
       data.push(details.id);
     }
   }
-  const sep = operation === 'update' ? ',' : ' AND ';
+  const sep = operation === udOperation.update ? ',' : ' AND ';
   let hasEncryptedValues = false;
   let item = 1;
   let columns = '';
@@ -62,13 +71,13 @@ function updateDelete(operation: string, sqlTable: BaseTable, details: any, encr
     }
   }
   let sql;
-  if (operation === 'update') {
+  if (operation === udOperation.update) {
     if (isArray) {
       sql = `UPDATE ${sqlTable.getTable(null)} SET ${columns} WHERE id = ${options.namedValueMarker}1`;
     } else {
       sql = `UPDATE ${sqlTable.getTable(null)} SET ${columns} WHERE id = ${options.namedValueMarker}id`;
     }
-  } else if (operation === 'delete') {
+  } else {
     if (details.id) {
       if (isArray) {
         columns += `${(item === 1 ? '' : sep)}id = ${options.namedValueMarker}1`;
@@ -77,8 +86,6 @@ function updateDelete(operation: string, sqlTable: BaseTable, details: any, encr
       }
     }
     sql = `DELETE FROM ${sqlTable.getTable(null)} WHERE ${columns}`;
-  } else {
-    throw new SqlError('SqlBuilder', `Invalid operation ${operation}`);
   }
   return {
     sql,
@@ -130,10 +137,10 @@ function buildWhere(filterString: string, sqlTable: BaseTable): SqlWhere {
 
 export default class SqlBuilder {
   static update(sqlTable: BaseTable, details: any, encryptFunction?: any) {
-    return updateDelete('update', sqlTable, details, encryptFunction);
+    return updateDelete(udOperation.update, sqlTable, details, encryptFunction);
   }
   static delete(sqlTable: BaseTable, details: any, encryptFunction?: any) {
-    return updateDelete('delete', sqlTable, details, encryptFunction);
+    return updateDelete(udOperation.delete, sqlTable, details, encryptFunction);
   }
   static insert(sqlTable: BaseTable, details: any, newId?: any, encryptFunction?: any) {
     if (!(sqlTable instanceof SqlTable)) {
@@ -189,7 +196,7 @@ export default class SqlBuilder {
       hasEncrypted: hasEncryptedValues,
     };
   }
-  /*
+  /**
    * @param {sqlTable} - SqlTable instance for the table to build the update for
    * @param {searchDetails} - object
    *  - select = columns to select from the table (comma separated)

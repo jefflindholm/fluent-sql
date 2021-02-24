@@ -16,10 +16,10 @@ export default class SqlTable implements BaseTable {
   static create(table: SqlTable, alias?: string): BaseTable {
     return new SqlTable(table.TableName, table.Columns, table.Schema, alias);
   }
-  /*
+  /**
    * @param {} - either another SqlTable, alias
    *             or TableName, array of columns
-   * example:
+   * *example:
    *      var users = new SqlTable('users', [{ColumnName: 'id'}, {ColumnName: 'username'}, {ColumnName: 'password'}])
    *      var users = new SqlTable({
    *          TableName: 'users',

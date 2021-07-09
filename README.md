@@ -1,3 +1,5 @@
+[![Open in Visual Studio Code](https://open.vscode.dev/badges/open-in-vscode.svg)](https://open.vscode.dev/jefflindholm/fluent-sql)
+
 # README
 
 This library basically takes your fluent SQL and generates SQL strings and replacement

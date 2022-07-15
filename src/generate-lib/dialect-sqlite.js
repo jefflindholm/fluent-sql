@@ -38,7 +38,7 @@ async function configure(newConfig) {
   });
 }
 async function close() {
-  connection.close();
+  await connection.close();
 }
 async function command(sql, args = []) {
   sql = sql.replace(/\$\d/, '?');

@@ -1,9 +1,9 @@
 /* global describe it */
-import '../src/string.extensions';
-import SqlTable from '../src/sql-table';
-import SqlQuery, { setDefaultOptions, postgresOptions } from '../src/sql-query';
 import { SqlBuilder } from '../src/fluent-sql';
 import SqlJoin from '../src/sql-join';
+import SqlQuery, { postgresOptions, setDefaultOptions } from '../src/sql-query';
+import SqlTable from '../src/sql-table';
+import '../src/string.extensions';
 
 describe('version2 tests', () => {
   const businessColumns = [{ ColumnName: 'id' }, { ColumnName: 'business_name' }, { ColumnName: 'tax_id' }];
@@ -53,14 +53,14 @@ LIMIT 1 OFFSET 0`;
       const sql = query.genSql();
       expect(sql.fetchSql).toBe(
         'SELECT' +
-          '\n"business".id as "id",' +
-          '\n"business".business_name as "businessName",' +
-          '\n"business".tax_id as "taxId"' +
-          '\nFROM' +
-          '\nbusiness as "business"' +
-          '\nWHERE "business".business_name like ($1)' +
-          '\nORDER BY "business".id ASC' +
-          '\nLIMIT 10',
+        '\n"business".id as "id",' +
+        '\n"business".business_name as "businessName",' +
+        '\n"business".tax_id as "taxId"' +
+        '\nFROM' +
+        '\nbusiness as "business"' +
+        '\nWHERE "business".business_name like ($1)' +
+        '\nORDER BY "business".id ASC' +
+        '\nLIMIT 10',
       );
       expect(sql.values[0]).toBe('%foo%');
     });
@@ -106,10 +106,7 @@ LIMIT 1 OFFSET 0`;
       });
       it('should throw exception when using a non SqlColumn', () => {
         const join = new SqlJoin(business.businessName);
-        expect(() => join.using({} as any)).toThrow({
-          location: 'SqlJoin::constructor',
-          message: 'trying to join on something not a SqlColumn',
-        } as any);
+        expect(() => join.using({} as any)).toThrow('SqlJoin::using: trying to join on something not a SqlColumn');
       });
     });
     describe('missing SqlColumn', () => {

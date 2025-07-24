@@ -1,8 +1,8 @@
 //import expect from 'chai';
 /* global describe it */
-import '../src/string.extensions';
-import SqlTable from '../src/sql-table';
 import SqlColumn from '../src/sql-column';
+import SqlTable from '../src/sql-table';
+import '../src/string.extensions';
 
 describe('fluent sql tests', () => {
   const businessColumns = [{ ColumnName: 'id' }, { ColumnName: 'business_name' }, { ColumnName: 'tax_id' }];
@@ -111,10 +111,7 @@ describe('fluent sql tests', () => {
       expect(cmd.fetchSql.trim()).toBe(`SELECT\n[b].id as [id]\nFROM\nbusiness as [b]\nWHERE [b].id = (:${id})`);
     });
     it('should require a SqlColumn when building a join using on', () => {
-      expect(business.on.bind(business, {})).toThrow({
-        location: 'SqlTable::on',
-        message: 'trying to build join on column not from this table',
-      } as any);
+      expect(business.on.bind(business, {})).toThrow('SqlTable::on: trying to build join on column not from this table');
     });
   });
 

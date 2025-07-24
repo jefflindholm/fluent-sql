@@ -13,25 +13,26 @@
     "simple-db-migrate": "^0.12.0"
   },
   "devDependencies": {
-    "@types/jest": "^29.5.14",
-    "@types/node": "^14.6.3",
+    "@types/node": "^20.0.0",
     "better-sqlite3": "^11.5.0",
     "flatted": "^3.3.3",
-    "jest": "^29.7.0",
     "pg": "^8.16.0",
     "pre-commit": "^1.0.10",
     "shx": "^0.4.0",
-    "ts-jest": "^29.3.4",
-    "typescript": "^5.8.3"
+    "typescript": "^5.8.3",
+    "@swc/core": "^1.3.102",
+    "@swc/cli": "^0.1.62",
+    "vitest": "^1.3.0",
+    "vite-tsconfig-paths": "^4.3.2"
   },
   "scripts": {
     "do-publish": "npm publish --registry=https://registry.npmjs.org",
     "build-old": "babel src --out-dir dist",
     "prebuild": "shx rm -rf dist/*",
-    "build": "tsc",
-    "test": "jest test/* --watch",
-    "test:once": "jest test/*",
-    "coverage": "jest test/* --coverage",
+    "build": "swc src -d dist --copy-files",
+    "test": "vitest --watch",
+    "test:once": "vitest run",
+    "coverage": "vitest run --coverage",
     "predo-publish": "npm run build"
   },
   "precommit": [

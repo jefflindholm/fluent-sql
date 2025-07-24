@@ -1,11 +1,11 @@
 /* global describe it */
-import '../src/string.extensions';
-import { BaseTable, BaseColumn } from '../src/base-sql';
-import SqlTable from '../src/sql-table';
+import { BaseTable } from '../src/base-sql';
 import { SqlBuilder } from '../src/fluent-sql';
-import { getDefaultOptions, setDefaultOptions, DbOptions } from '../src/sql-query';
-import SqlColumn from '../src/sql-column';
 import { SearchDetails } from '../src/sql-builder';
+import SqlColumn from '../src/sql-column';
+import { DbOptions, getDefaultOptions, setDefaultOptions } from '../src/sql-query';
+import SqlTable from '../src/sql-table';
+import '../src/string.extensions';
 
 describe('fluent sql tests', () => {
   const businessColumns = [
@@ -249,19 +249,13 @@ FETCH NEXT 25 ROWS ONLY`;
       expect(cmd.sql).toBe(`UPDATE business SET business_name = :${name} WHERE id = :${id}`);
     });
     it('should throw an exception if the first argument is not a SqlTable to insert and update', () => {
-      expect(() => SqlBuilder.update({} as any, null)).toThrow({
-        location: 'SqlBuilder::update',
-        message: 'sqlTable is not an instance of SqlTable',
-      } as any);
+      expect(() => SqlBuilder.update({} as any, null)).toThrow('SqlBuilder::update: sqlTable is not an instance of SqlTable');
     });
     it('should throw an exception if the first argument is not a SqlTable to insert and update', () => {
-      expect(() => SqlBuilder.insert({} as any, null, null)).toThrow({
-        location: 'SqlBuilder::insert',
-        message: 'sqlTable is not an instance of SqlTable',
-      } as any);
+      expect(() => SqlBuilder.insert({} as any, null, null)).toThrow('SqlBuilder::update: sqlTable is not an instance of SqlTable');
     });
     it('should encrypt columns as needed for update', () => {
-      const decrypt = function(column: SqlColumn, varName: string) {
+      const decrypt = function (column: SqlColumn, varName: string) {
         if (!(column instanceof SqlColumn)) {
           throw { msg: 'not a SqlColumn' };
         }
@@ -283,7 +277,7 @@ FETCH NEXT 25 ROWS ONLY`;
       expect(cmd.sql).toBe(`UPDATE business SET business_name = :${name},tax_id = ENCRYPT(:${tax}) WHERE id = :${id}`);
     });
     it('should encrypt columns as needed for insert', () => {
-      const decrypt = function(column: SqlColumn, varName: string) {
+      const decrypt = function (column: SqlColumn, varName: string) {
         if (!(column instanceof SqlColumn)) {
           throw { msg: 'not a SqlColumn' };
         }

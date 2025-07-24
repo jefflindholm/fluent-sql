@@ -1,10 +1,10 @@
-import './string.extensions';
 import { BaseColumn, BaseTable, eEscapeLevels } from './base-sql';
+import { processArgs, SqlError } from './helpers';
 import SqlOrder from './sql-order';
 import SqlQuery from './sql-query';
 import SqlTable from './sql-table';
 import SqlWhere from './sql-where';
-import { processArgs, SqlError } from './helpers';
+import './string.extensions';
 
 export class SqlAggregate {
   table: BaseTable;
@@ -43,7 +43,7 @@ export default class SqlColumn implements BaseColumn {
 
   constructor(table: BaseTable | null, name?: string, literal?: string, not?: boolean, values?: string[], aggregate?: SqlAggregate, grouped?: boolean, alias?: string) {
     if (!(table instanceof SqlTable) && !literal) {
-      throw new SqlError('SqlColumn::constructor', 'must construct using a SqlTable or literal');
+      throw new Error('SqlColumn::constructor: must construct using a SqlTable or literal');
     }
     this._table = table;
     this._columnName = name;

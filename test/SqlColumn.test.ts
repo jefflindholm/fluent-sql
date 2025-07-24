@@ -1,10 +1,10 @@
 /* global describe it */
-import '../src/string.extensions';
-import SqlTable from '../src/sql-table';
-import SqlColumn from '../src/sql-column';
-import SqlWhere from '../src/sql-where';
-import SqlOrder from '../src/sql-order';
 import { BaseTable } from '../src/base-sql';
+import SqlColumn from '../src/sql-column';
+import SqlOrder from '../src/sql-order';
+import SqlTable from '../src/sql-table';
+import SqlWhere from '../src/sql-where';
+import '../src/string.extensions';
 
 describe('fluent sql tests', () => {
 
@@ -77,10 +77,7 @@ describe('fluent sql tests', () => {
     });
 
     it('should throw exception if it is constructed from something other than SqlTable, or {Literal:<val>, alias: <val>}', () => {
-      expect(() => new SqlColumn({} as any)).toThrow({
-        location: 'SqlColumn::constructor',
-        message: 'must construct using a SqlTable or literal',
-      } as any);
+      expect(() => new SqlColumn({} as any)).toThrow('SqlColumn::constructor: must construct using a SqlTable or literal');
     });
 
     it('should generate SqlWhere clauses from operators, eq, ne, gt, gte, lt, lte, isNull, isNotNull, like, in', () => {

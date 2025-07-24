@@ -1,5 +1,10 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
-exports[`version2 tests missing tests missing SqlJoin should throw execution when created with something not a SqlColumn 1`] = `"trying to join on something not a SqlColumn"`;
+exports[`version2 tests > missing tests > missing SqlJoin > should throw execution when created with something not a SqlColumn 1`] = `
+SqlError {
+  "location": "SqlJoin::constructor",
+  "message": "trying to join on something not a SqlColumn",
+}
+`;
 
-exports[`version2 tests missing tests missing SqlQuery should throw an exception if there is no FROM 1`] = `"No FROM in query"`;
+exports[`version2 tests > missing tests > missing SqlQuery > should throw an exception if there is no FROM 1`] = `[Error: toSql: No FROM in query]`;

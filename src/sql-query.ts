@@ -1,12 +1,12 @@
 import './string.extensions';
 
+import { BaseQuery, BaseTable, eEscapeLevels } from './base-sql';
+import { processArgs, SqlError } from './helpers';
 import SqlColumn from './sql-column';
 import SqlJoin from './sql-join';
 import SqlOrder from './sql-order';
 import SqlTable from './sql-table';
 import SqlWhere from './sql-where';
-import { processArgs, SqlError } from './helpers';
-import { BaseQuery, eEscapeLevels, BaseTable } from './base-sql';
 
 export interface DbOptions {
   sqlStartChar: string;
@@ -99,9 +99,9 @@ export default class SqlQuery implements BaseQuery {
   private _having: SqlWhere[];
   private _distinct: boolean = false;
   private _variableCount: number;
-  private _offsetCount: number|null = null;
-  private _pageNo: number|null = null;
-  private _takeCount: number|null = null;
+  private _offsetCount: number | null = null;
+  private _pageNo: number | null = null;
+  private _takeCount: number | null = null;
 
   get Distinct() { return this._distinct; }
   set Distinct(v) { this._distinct = v; }
@@ -147,7 +147,7 @@ export default class SqlQuery implements BaseQuery {
             //if ((!where.Value) && where.Value !== 0 && where.Value !== false && where.Value !== '') {
             piece = `${where.Column.qualifiedName(this)} ${where.Op}`;
           } else {
-            let data:any;
+            let data: any;
             piece = `${where.Column.qualifiedName(this)} ${where.Op}`;
             if (!this._options.namedValues || this._options.markerType === 'number') {
               data = where.Value;
@@ -252,7 +252,7 @@ export default class SqlQuery implements BaseQuery {
    */
   applyOrder(defaultSqlTable: BaseTable, orderString: string, overrides: any) {
     if (!(defaultSqlTable instanceof SqlTable)) {
-      throw new SqlError('SqlQuery::applyOrder', 'defaultSqlTable is not an instance of SqlTable');
+      throw new Error('SqlQuery::applyOrder: defaultSqlTable is not an instance of SqlTable');
     }
     if (orderString) {
       let col;
@@ -297,21 +297,21 @@ export default class SqlQuery implements BaseQuery {
       });
     } else {
       processArgs((a: any) => {
-        this.Columns.push(SqlColumn.create({column: a}));
+        this.Columns.push(SqlColumn.create({ column: a }));
       }, ...args); // eslint-disable-line brace-style
     }
     return this;
   }
   from(sqlTable: BaseTable) {
     if (!(sqlTable instanceof SqlTable)) {
-      throw { location: 'SqlQuery::from', message: 'from clause must be a SqlTable' }; //eslint-disable-line
+      throw new Error('SqlQuery::from: from clause must be a SqlTable'); //eslint-disable-line
     }
     this.From.push(sqlTable);
     return this;
   }
   join(joinClause: SqlJoin) {
     if (!(joinClause instanceof SqlJoin)) {
-      throw { location: 'SqlQuery::join', message: 'clause is not a SqlJoin' }; // eslint-disable-line
+      throw new Error('SqlQuery::join: clause is not a SqlJoin'); // eslint-disable-line
     }
     this.Joins.push(joinClause);
     return this;
@@ -380,16 +380,16 @@ export default class SqlQuery implements BaseQuery {
 
   genSql(decryptFunction: any = null, maskFunction: any = null) {
     if (this.From && this.From.length < 1) {
-      throw { location: 'toSql', message: 'No FROM in query' }; // eslint-disable-line
+      throw new Error('toSql: No FROM in query'); // eslint-disable-line
     }
 
     // OLD SCHOOL PAGING CODE
     /*
      */
 
-    const sql:any = {};
-    const values:any[] = [];
-    const groupBy:string[] = [];
+    const sql: any = {};
+    const values: any[] = [];
+    const groupBy: string[] = [];
     let columns = '';
     let orderString: string;
     let data: any;

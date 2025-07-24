@@ -1,10 +1,10 @@
-import './string.extensions';
-import { BaseColumn, BaseTable, eEscapeLevels, BaseQuery } from './base-sql';
+import { BaseColumn, BaseQuery, BaseTable, eEscapeLevels } from './base-sql';
+import { SqlError } from './helpers';
 import SqlColumn from './sql-column';
 import SqlJoin from './sql-join';
 import SqlQuery from './sql-query';
 import SqlWhere from './sql-where';
-import { SqlError } from './helpers';
+import './string.extensions';
 
 
 export interface Options {
@@ -120,7 +120,7 @@ export default class SqlTable implements BaseTable {
   }
   on(sqlColumn: SqlColumn) {
     if (sqlColumn?.Table !== this) {
-      throw { location: 'SqlTable::on', message: 'trying to build join on column not from this table' }; //eslint-disable-line
+      throw new Error('SqlTable::on: trying to build join on column not from this table'); //eslint-disable-line
     }
     return new SqlJoin(sqlColumn);
   }

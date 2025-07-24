@@ -1,5 +1,15 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
-exports[`fluent sql tests SqlQuery Where clause tests should throw an exception trying to AND at the same level as OR 1`] = `"cannot add 'and' to 'or' group"`;
+exports[`fluent sql tests > SqlQuery Where clause tests > should throw an exception trying to AND at the same level as OR 1`] = `
+SqlError {
+  "location": "SqlWhere::and",
+  "message": "cannot add 'and' to 'or' group",
+}
+`;
 
-exports[`fluent sql tests SqlQuery Where clause tests should throw an exception trying to OR at the same level as AND 1`] = `"cannot add 'or' to 'and' group"`;
+exports[`fluent sql tests > SqlQuery Where clause tests > should throw an exception trying to OR at the same level as AND 1`] = `
+SqlError {
+  "location": "SqlWhere::or",
+  "message": "cannot add 'or' to 'and' group",
+}
+`;

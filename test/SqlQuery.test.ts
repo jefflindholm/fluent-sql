@@ -1,18 +1,16 @@
 /* global describe it */
 // !uncomment for dumps
 // import circularJSON from 'flatted';
-import '../src/string.extensions';
-import SqlTable from '../src/sql-table';
-import SqlQuery, { setPostgres, setSqlServer } from '../src/sql-query';
-import SqlColumn from '../src/sql-column';
 import { BaseTable } from '../src/base-sql';
 import { SqlWhere } from '../src/fluent-sql';
-import { DbOptions } from '../src/sql-query';
-import { SqlError } from '../src/helpers';
+import SqlColumn from '../src/sql-column';
+import SqlQuery, { DbOptions, setPostgres, setSqlServer } from '../src/sql-query';
+import SqlTable from '../src/sql-table';
+import '../src/string.extensions';
 
 describe('fluent sql tests', () => {
   const businessColumns = [{ ColumnName: 'id' }, { ColumnName: 'business_name' }, { ColumnName: 'tax_id' }];
-  const business:BaseTable = SqlTable.create({ TableName: 'business', Columns: businessColumns } as SqlTable);
+  const business: BaseTable = SqlTable.create({ TableName: 'business', Columns: businessColumns } as SqlTable);
   const business_dba: BaseTable = SqlTable.create({
     TableName: 'business_dba',
     Columns: [
@@ -20,9 +18,9 @@ describe('fluent sql tests', () => {
       { ColumnName: 'business_id' },
       { ColumnName: 'dba' },
     ]
-  }as SqlTable);
+  } as SqlTable);
   const financeColumns = [{ name: 'id' }, { name: 'business_id' }, { name: 'balance' }, { name: 'finance_type' }];
-  const finance:BaseTable = new SqlTable({ TableName: 'finance', Columns: financeColumns });
+  const finance: BaseTable = new SqlTable({ TableName: 'finance', Columns: financeColumns });
 
   function getBusinessCols(tableName = 'business') {
     let columns = '';
@@ -393,12 +391,12 @@ GROUP BY [business].tax_id
       expect(cmd.values[name]).toBe('fred');
       expect(cmd.fetchSql.trim()).toBe(
         'SELECT\n' +
-          '[business].id as [id],\n' +
-          '[business].business_name as [businessName]\n' +
-          'FROM\n' +
-          'business as [business]\n' +
-          `WHERE [business].id = (:${id})` +
-          `\nAND [business].business_name = (:${name})`,
+        '[business].id as [id],\n' +
+        '[business].business_name as [businessName]\n' +
+        'FROM\n' +
+        'business as [business]\n' +
+        `WHERE [business].id = (:${id})` +
+        `\nAND [business].business_name = (:${name})`,
       );
     });
 
@@ -415,11 +413,11 @@ GROUP BY [business].tax_id
       expect(cmd.values[id]).toMatchObject([10000, 10001, 10002]);
       expect(cmd.fetchSql.trim()).toBe(
         'SELECT\n' +
-          '[business].id as [id],\n' +
-          '[business].business_name as [businessName]\n' +
-          'FROM\n' +
-          'business as [business]\n' +
-          `WHERE [business].id in (:${id})`,
+        '[business].id as [id],\n' +
+        '[business].business_name as [businessName]\n' +
+        'FROM\n' +
+        'business as [business]\n' +
+        `WHERE [business].id in (:${id})`,
       );
     });
 
@@ -438,12 +436,12 @@ GROUP BY [business].tax_id
       expect(cmd.values[id2]).toBe(10002);
       expect(cmd.fetchSql.trim()).toBe(
         'SELECT\n' +
-          '[business].id as [id],\n' +
-          '[business].business_name as [businessName]\n' +
-          'FROM\n' +
-          'business as [business]\n' +
-          `WHERE ([business].id >= (:${id1})` +
-          `\nAND [business].id <= (:${id2}))`,
+        '[business].id as [id],\n' +
+        '[business].business_name as [businessName]\n' +
+        'FROM\n' +
+        'business as [business]\n' +
+        `WHERE ([business].id >= (:${id1})` +
+        `\nAND [business].id <= (:${id2}))`,
       );
     });
 
@@ -457,11 +455,11 @@ GROUP BY [business].tax_id
       expect(Object.keys(cmd.values).length).toBe(0);
       expect(cmd.fetchSql.trim()).toBe(
         'SELECT\n' +
-          '[business].id as [id],\n' +
-          '[business].business_name as [businessName]\n' +
-          'FROM\n' +
-          'business as [business]\n' +
-          'WHERE [business].id IS NULL',
+        '[business].id as [id],\n' +
+        '[business].business_name as [businessName]\n' +
+        'FROM\n' +
+        'business as [business]\n' +
+        'WHERE [business].id IS NULL',
       );
     });
 
@@ -475,11 +473,11 @@ GROUP BY [business].tax_id
       expect(Object.keys(cmd.values).length).toBe(0);
       expect(cmd.fetchSql.trim()).toBe(
         'SELECT\n' +
-          '[business].id as [id],\n' +
-          '[business].business_name as [businessName]\n' +
-          'FROM\n' +
-          'business as [business]\n' +
-          'WHERE NOT ([business].id IS NULL)',
+        '[business].id as [id],\n' +
+        '[business].business_name as [businessName]\n' +
+        'FROM\n' +
+        'business as [business]\n' +
+        'WHERE NOT ([business].id IS NULL)',
       );
     });
 
@@ -493,11 +491,11 @@ GROUP BY [business].tax_id
       expect(Object.keys(cmd.values).length).toBe(0);
       expect(cmd.fetchSql.trim()).toBe(
         'SELECT\n' +
-          '[business].id as [id],\n' +
-          '[business].business_name as [businessName]\n' +
-          'FROM\n' +
-          'business as [business]\n' +
-          'WHERE [business].id IS NOT NULL',
+        '[business].id as [id],\n' +
+        '[business].business_name as [businessName]\n' +
+        'FROM\n' +
+        'business as [business]\n' +
+        'WHERE [business].id IS NOT NULL',
       );
     });
 
@@ -533,13 +531,13 @@ GROUP BY [business].tax_id
       expect(cmd.values[id]).toBe(1);
       expect(cmd.fetchSql.trim()).toBe(
         'SELECT' +
-          '\n[business].id as [id],' +
-          '\n[business].business_name as [businessName]' +
-          '\nFROM' +
-          '\nbusiness as [business]' +
-          `\nWHERE ([business].business_name like (:${name1})` +
-          `\nOR [business].id = (:${id}))` +
-          `\nAND [business].business_name like (:${name2})`,
+        '\n[business].id as [id],' +
+        '\n[business].business_name as [businessName]' +
+        '\nFROM' +
+        '\nbusiness as [business]' +
+        `\nWHERE ([business].business_name like (:${name1})` +
+        `\nOR [business].id = (:${id}))` +
+        `\nAND [business].business_name like (:${name2})`,
       );
     });
 
@@ -559,8 +557,8 @@ GROUP BY [business].tax_id
 
     it('should handle a where clause with a literal with values', () => {
       const lit = SqlColumn
-          .create({ literal: 'SELECT business_id FROM business_dba WHERE dba_name like :foo' })
-          .using({ foo: '%foo%' });
+        .create({ literal: 'SELECT business_id FROM business_dba WHERE dba_name like :foo' })
+        .using({ foo: '%foo%' });
 
       const query = new SqlQuery()
         .select(business.id, business.businessName)
@@ -572,8 +570,7 @@ GROUP BY [business].tax_id
       const id = Object.keys(cmd.values)[0];
       expect(cmd.values[id]).toBe('%foo%');
       expect(cmd.fetchSql.trim()).toBe(
-        `SELECT\n[business].id as [id],\n[business].business_name as [businessName]\nFROM\nbusiness as [business]\nWHERE [business].id = (${
-          lit.Literal
+        `SELECT\n[business].id as [id],\n[business].business_name as [businessName]\nFROM\nbusiness as [business]\nWHERE [business].id = (${lit.Literal
         })`,
       );
     });
@@ -782,32 +779,23 @@ FETCH NEXT 50 ROWS ONLY`;
   describe('SqlQuery error tests', () => {
     it('should throw if from is not a SqlTable', () => {
       const query = new SqlQuery();
-      expect(query.from.bind(query, {} as any)).toThrow({
-        location: 'SqlQuery::from',
-        message: 'from clause must be a SqlTable',
-      } as any);
+      expect(query.from.bind(query, {} as any)).toThrow('SqlQuery::from: from clause must be a SqlTable');
     });
 
     it('should throw if join is not a SqlJoin', () => {
       const query = new SqlQuery();
-      expect(query.join.bind(query, {} as any)).toThrow({
-        location: 'SqlQuery::join',
-        message: 'clause is not a SqlJoin',
-      } as any);
+      expect(query.join.bind(query, {} as any)).toThrow('SqlQuery::join: clause is not a SqlJoin');
     });
 
     it('should throw exception if it is orderby with something other than SqlOrder or SqlColumn', () => {
       const query = new SqlQuery();
-      expect(query.orderBy.bind(query, {})).toThrow({
-        location: 'SqlOrder::constructor',
-        message: 'did not pass a SqlColumn object',
-      } as any);
+      expect(query.orderBy.bind(query, {})).toThrow('SqlOrder::constructor: did not pass a SqlColumn object');
     });
   });
 
   describe('SqlQuery extras', () => {
     it('should take a masking function and call it for every column', () => {
-      const masking = function(column: SqlColumn, literal: string) {
+      const masking = function (column: SqlColumn, literal: string) {
         if (!(column instanceof SqlColumn)) {
           throw { msg: 'not a SqlColumn' };
         }
@@ -828,7 +816,7 @@ FETCH NEXT 50 ROWS ONLY`;
     });
 
     it('should take a decrypting function and call it for every column', () => {
-      const decrypt = function(column: SqlColumn, qualified: boolean) {
+      const decrypt = function (column: SqlColumn, qualified: boolean) {
         if (!(column instanceof SqlColumn)) {
           throw { msg: 'not a SqlColumn' };
         }
@@ -852,7 +840,7 @@ FETCH NEXT 50 ROWS ONLY`;
       expect(cmd.fetchSql.trim()).toBe(`SELECT${columns}\nFROM\nbusiness as [business]`);
     });
     it('should take a decrypting function and call it for every column setting hasEncrypted to true if any are encrypted', () => {
-      const decrypt = function(column: SqlColumn, qualified: boolean) {
+      const decrypt = function (column: SqlColumn, qualified: boolean) {
         if (!(column instanceof SqlColumn)) {
           throw { msg: 'not a SqlColumn' };
         }
@@ -870,7 +858,7 @@ FETCH NEXT 50 ROWS ONLY`;
       expect(cmd.hasEncrypted).toBe(true);
     });
     it('should take a decrypting function and call it for every column setting hasEncrypted to false if none are encrypted', () => {
-      const decrypt = function(column: SqlColumn, qualified: boolean) {
+      const decrypt = function (column: SqlColumn, qualified: boolean) {
         if (!(column instanceof SqlColumn)) {
           throw { msg: 'not a SqlColumn' };
         }
@@ -881,7 +869,7 @@ FETCH NEXT 50 ROWS ONLY`;
       expect(cmd.hasEncrypted).toBe(false);
     });
     it('should take both a decrypting function and masking function and call them for every column', () => {
-      const decrypt = function(column: SqlColumn, qualified: boolean) {
+      const decrypt = function (column: SqlColumn, qualified: boolean) {
         if (!(column instanceof SqlColumn)) {
           throw { msg: 'not a SqlColumn' };
         }
@@ -894,7 +882,7 @@ FETCH NEXT 50 ROWS ONLY`;
           return `DECRYPT(${column.ColumnName})`;
         }
       };
-      const masking = function(column: SqlColumn, literal: string) {
+      const masking = function (column: SqlColumn, literal: string) {
         if (!(column instanceof SqlColumn)) {
           throw { msg: 'not a SqlColumn' };
         }
@@ -963,10 +951,7 @@ FETCH NEXT 50 ROWS ONLY`;
           .join(business_dba.on(business_dba.businessId).using(business.id));
 
         const order = 'id, name DESC, business_dba.id';
-        expect(() => query.applyOrder({} as any, order, null)).toThrow({
-          location: 'SqlQuery::applyOrder',
-          message: 'defaultSqlTable is not an instance of SqlTable',
-        } as any);
+        expect(() => query.applyOrder({} as any, order, null)).toThrow('SqlQuery::applyOrder: defaultSqlTable is not an instance of SqlTable');
       });
     });
   });

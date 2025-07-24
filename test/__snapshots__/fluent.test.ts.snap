@@ -1,5 +1,10 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
-exports[`fluent sql tests SqlJoin tests should throw error if it is not constructed from a SqlColumn 1`] = `"trying to join on something not a SqlColumn"`;
+exports[`fluent sql tests > SqlJoin tests > should throw error if it is not constructed from a SqlColumn 1`] = `
+SqlError {
+  "location": "SqlJoin::constructor",
+  "message": "trying to join on something not a SqlColumn",
+}
+`;
 
-exports[`fluent sql tests SqlJoin tests should throw error if it is not linked via using with a SqlColumn 1`] = `"trying to join on something not a SqlColumn"`;
+exports[`fluent sql tests > SqlJoin tests > should throw error if it is not linked via using with a SqlColumn 1`] = `[Error: SqlJoin::using: trying to join on something not a SqlColumn]`;

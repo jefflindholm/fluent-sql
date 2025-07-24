@@ -1,7 +1,7 @@
 import './string.extensions';
 
-import SqlColumn from './sql-column';
 import { SqlError } from './helpers';
+import SqlColumn from './sql-column';
 
 export default class SqlJoin {
   constructor(sqlColumn: SqlColumn) {
@@ -26,7 +26,7 @@ export default class SqlJoin {
 
   using(sqlColumn: SqlColumn) {
     if (!(sqlColumn instanceof SqlColumn)) {
-      throw { location: 'SqlJoin::using', message: 'trying to join on something not a SqlColumn' }; //eslint-disable-line
+      throw new Error('SqlJoin::using: trying to join on something not a SqlColumn'); //eslint-disable-line
     }
     this.To = sqlColumn;
     return this;

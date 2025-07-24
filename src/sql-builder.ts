@@ -1,11 +1,11 @@
 import './string.extensions';
 
-import SqlTable from './sql-table';
-import SqlWhere from './sql-where';
 import { BaseTable } from './base-sql';
 import SqlQuery, {
   getDefaultOptions
 } from './sql-query';
+import SqlTable from './sql-table';
+import SqlWhere from './sql-where';
 
 export interface SearchDetails {
   select: string;
@@ -28,10 +28,7 @@ export enum udOperation {
 **/
 function updateDelete(operation: udOperation, sqlTable: BaseTable, details: any, encryptFunction: any) {
   if (!(sqlTable instanceof SqlTable)) {
-    throw {
-      location: 'SqlBuilder::update',
-      message: 'sqlTable is not an instance of SqlTable'
-    }; // eslint-disable-line
+    throw new Error('SqlBuilder::update: sqlTable is not an instance of SqlTable'); // eslint-disable-line
   }
   const options = getDefaultOptions();
   const isArray = !options.namedValues || options.markerType === 'number';
@@ -116,11 +113,11 @@ function buildWhere(filterString: string, sqlTable: BaseTable): SqlWhere {
             whereClause = tmpClause;
           }
         } else {
-          throw { location: 'SqlBuilder:buildWhere', message: (`unknown column ${attr} in table ${sqlTable.TableName} from where clause`) }
+          throw new Error(`SqlBuilder:buildWhere: unknown column ${attr} in table ${sqlTable.TableName} from where clause`)
         }
       });
       if (!whereClause) {
-        throw { location: 'SqlBuilder:buildWhere', message: "Somehow adding NULL whereClause" };
+        throw new Error('SqlBuilder:buildWhere: Somehow adding NULL whereClause');
       }
       if (where) {
         where = where.or(whereClause);
@@ -130,7 +127,7 @@ function buildWhere(filterString: string, sqlTable: BaseTable): SqlWhere {
     });
   }
   if (!where) {
-    throw { location: 'SqlBuilder:buildWhere', message: "Somehow returning NULL where" };
+    throw new Error('SqlBuilder:buildWhere: Somehow returning NULL where');
   }
   return where;
 }
@@ -144,10 +141,7 @@ export default class SqlBuilder {
   }
   static insert(sqlTable: BaseTable, details: any, newId?: any, encryptFunction?: any) {
     if (!(sqlTable instanceof SqlTable)) {
-      throw {
-        location: 'SqlBuilder::insert',
-        message: 'sqlTable is not an instance of SqlTable'
-      }; //eslint-disable-line
+      throw new Error('SqlBuilder::update: sqlTable is not an instance of SqlTable'); // eslint-disable-line
     }
     const options = getDefaultOptions();
     const isArray = !options.namedValues || options.markerType === 'number';
@@ -226,7 +220,7 @@ export default class SqlBuilder {
         if (sqlTable.hasOwnProperty(c.toCamel())) {
           query.select((sqlTable as BaseTable)[c.toCamel()]);
         } else {
-          throw { location: 'SqlBuilder:search - columns', message: (`(columns) unknown column for table ${sqlTable.TableName} - ${c}`) }
+          throw new Error(`SqlBuilder:search - columns: (columns) unknown column for table ${sqlTable.TableName} - ${c}`)
         }
       });
     } else {
@@ -252,7 +246,7 @@ export default class SqlBuilder {
           if (sqlTable.hasOwnProperty(c)) {
             query.orderBy((sqlTable as BaseTable)[c]);
           } else {
-            throw { location: 'SqlBuilder:Search - orderBy', message: (`unknown column for table ${sqlTable.TableName} - ${c}`) }
+            throw new Error(`SqlBuilder:Search - orderBy: unknown column for table ${sqlTable.TableName} - ${c}`)
           }
         });
       } else {
@@ -262,7 +256,7 @@ export default class SqlBuilder {
           if (sqlTable.hasOwnProperty(name)) {
             query.orderBy(((sqlTable as BaseTable)[name].dir(columnDetails[1] || 'ASC')));
           } else {
-            throw { location: 'SqlBuilder:Search - orderBy2', message: (`unknown column for table ${sqlTable.TableName} - ${c}`) }
+            throw new Error(`SqlBuilder:Search - orderBy2: unknown column for table ${sqlTable.TableName} - ${c}`)
           }
         });
       }
